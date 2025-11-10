@@ -1,124 +1,122 @@
-{
-  "posts": [
-    {
-      "user": {
-        "id": 101,
-        "name": "Alice Johnson",
-        "username": "AliceJ"
-      },
-      "id": 1,
-      "content": "Just enjoyed a wonderful hike in the mountains! The views were absolutely breathtaking. It's amazing how refreshing a bit of nature can be. Highly recommend it to everyone.",
-      "image_url": "https://picsum.photos/id/1015/500/300",
-      "video_url": "",
-      "created_at": "2025-10-22T14:30:00Z"
+[
+  {
+    "user": {
+      "id": 101,
+      "name": "Alice Johnson",
+      "username": "AliceJ"
     },
-    {
-      "user": {
-        "id": 102,
-        "name": "Bob Williams",
-        "username": "BobbyW"
-      },
-      "id": 2,
-      "content": "Exploring the city's new art exhibit today. Some truly thought-provoking pieces. Art has a way of speaking to the soul.",
-      "image_url": "https://picsum.photos/id/1025/500/300",
-      "video_url": "",
-      "created_at": "2025-11-05T09:15:10Z"
+    "id": 1,
+    "content": "Just enjoyed a wonderful hike in the mountains! The views were absolutely breathtaking. It's amazing how refreshing a bit of nature can be. Highly recommend it to everyone.",
+    "image_url": "https://picsum.photos/id/1015/500/300",
+    "video_url": "",
+    "created_at": "2025-10-22T14:30:00Z"
+  },
+  {
+    "user": {
+      "id": 102,
+      "name": "Bob Williams",
+      "username": "BobbyW"
     },
-    {
-      "user": {
-        "id": 103,
-        "name": "Charlie Brown",
-        "username": "ChuckB"
-      },
-      "id": 3,
-      "content": "Trying out a new recipe for homemade pasta. It's a bit of work, but the taste is so much better than store-bought. Cooking is therapy!",
-      "image_url": "https://picsum.photos/id/1080/500/300",
-      "video_url": null,
-      "created_at": "2025-09-18T18:45:00Z"
+    "id": 2,
+    "content": "Exploring the city's new art exhibit today. Some truly thought-provoking pieces. Art has a way of speaking to the soul.",
+    "image_url": "https://picsum.photos/id/1025/500/300",
+    "video_url": "",
+    "created_at": "2025-11-05T09:15:10Z"
+  },
+  {
+    "user": {
+      "id": 103,
+      "name": "Charlie Brown",
+      "username": "ChuckB"
     },
-    {
-      "user": {
-        "id": 104,
-        "name": "Diana Miller",
-        "username": "DiMiller"
-      },
-      "id": 4,
-      "content": "This new sci-fi book is impossible to put down. The world-building is incredible, and the characters feel so real. A must-read for any genre fan.",
-      "image_url": null,
-      "video_url": "",
-      "created_at": "2025-11-08T22:00:05Z"
+    "id": 3,
+    "content": "Trying out a new recipe for homemade pasta. It's a bit of work, but the taste is so much better than store-bought. Cooking is therapy!",
+    "image_url": "https://picsum.photos/id/1080/500/300",
+    "video_url": null,
+    "created_at": "2025-09-18T18:45:00Z"
+  },
+  {
+    "user": {
+      "id": 104,
+      "name": "Diana Miller",
+      "username": "DiMiller"
     },
-    {
-      "user": {
-        "id": 105,
-        "name": "Ethan Davis",
-        "username": "EthanD"
-      },
-      "id": 5,
-      "content": "What a game last night! That last-minute goal was epic. So proud of the team's performance. Can't wait for the next match.",
-      "image_url": "https://picsum.photos/id/111/500/300",
-      "video_url": "",
-      "created_at": "2025-10-30T11:55:00Z"
+    "id": 4,
+    "content": "This new sci-fi book is impossible to put down. The world-building is incredible, and the characters feel so real. A must-read for any genre fan.",
+    "image_url": null,
+    "video_url": "",
+    "created_at": "2025-11-08T22:00:05Z"
+  },
+  {
+    "user": {
+      "id": 105,
+      "name": "Ethan Davis",
+      "username": "EthanD"
     },
-    {
-      "user": {
-        "id": 106,
-        "name": "Fiona Garcia",
-        "username": "FionaG"
-      },
-      "id": 6,
-      "content": "Spending the afternoon coding and listening to lofi beats. There's something so calming about being in the zone and creating something new. #flutterdev",
-      "image_url": null,
-      "video_url": "",
-      "created_at": "2025-11-10T15:20:00Z"
+    "id": 5,
+    "content": "What a game last night! That last-minute goal was epic. So proud of the team's performance. Can't wait for the next match.",
+    "image_url": "https://picsum.photos/id/111/500/300",
+    "video_url": "",
+    "created_at": "2025-10-30T11:55:00Z"
+  },
+  {
+    "user": {
+      "id": 106,
+      "name": "Fiona Garcia",
+      "username": "FionaG"
     },
-    {
-      "user": {
-        "id": 107,
-        "name": "George Rodriguez",
-        "username": "GeoRod"
-      },
-      "id": 7,
-      "content": "Morning coffee with a view. Sometimes it's the little moments that make the day special. Hope everyone has a great start to their week!",
-      "image_url": "https://picsum.photos/id/225/500/300",
-      "video_url": null,
-      "created_at": "2025-11-03T07:05:30Z"
+    "id": 6,
+    "content": "Spending the afternoon coding and listening to lofi beats. There's something so calming about being in the zone and creating something new. #flutterdev",
+    "image_url": null,
+    "video_url": "",
+    "created_at": "2025-11-10T15:20:00Z"
+  },
+  {
+    "user": {
+      "id": 107,
+      "name": "George Rodriguez",
+      "username": "GeoRod"
     },
-    {
-      "user": {
-        "id": 108,
-        "name": "Hannah Martinez",
-        "username": "HannahM"
-      },
-      "id": 8,
-      "content": "Just finished a 5k run! Feeling energized and accomplished. Setting small goals and achieving them is a great confidence booster.",
-      "image_url": "https://picsum.photos/id/349/500/300",
-      "video_url": "",
-      "created_at": "2025-10-15T19:00:00Z"
+    "id": 7,
+    "content": "Morning coffee with a view. Sometimes it's the little moments that make the day special. Hope everyone has a great start to their week!",
+    "image_url": "https://picsum.photos/id/225/500/300",
+    "video_url": null,
+    "created_at": "2025-11-03T07:05:30Z"
+  },
+  {
+    "user": {
+      "id": 108,
+      "name": "Hannah Martinez",
+      "username": "HannahM"
     },
-    {
-      "user": {
-        "id": 109,
-        "name": "Ian Taylor",
-        "username": "IanT"
-      },
-      "id": 9,
-      "content": "Working on a new music track. The creative process is a journey of discovery. It's exciting to see it all come together piece by piece.",
-      "image_url": null,
-      "video_url": "",
-      "created_at": "2025-11-09T16:10:00Z"
+    "id": 8,
+    "content": "Just finished a 5k run! Feeling energized and accomplished. Setting small goals and achieving them is a great confidence booster.",
+    "image_url": "https://picsum.photos/id/349/500/300",
+    "video_url": "",
+    "created_at": "2025-10-15T19:00:00Z"
+  },
+  {
+    "user": {
+      "id": 109,
+      "name": "Ian Taylor",
+      "username": "IanT"
     },
-    {
-      "user": {
-        "id": 110,
-        "name": "Jane Anderson",
-        "username": "JaneA"
-      },
-      "id": 10,
-      "content": "Found this hidden gem of a cafe downtown. The atmosphere is cozy, and their pastries are to die for. A perfect spot for a quiet afternoon.",
-      "image_url": "https://picsum.photos/id/431/500/300",
-      "video_url": "",
-      "created_at": "2025-11-01T13:00:00Z"
-    }
-  ]
-}
+    "id": 9,
+    "content": "Working on a new music track. The creative process is a journey of discovery. It's exciting to see it all come together piece by piece.",
+    "image_url": null,
+    "video_url": "",
+    "created_at": "2025-11-09T16:10:00Z"
+  },
+  {
+    "user": {
+      "id": 110,
+      "name": "Jane Anderson",
+      "username": "JaneA"
+    },
+    "id": 10,
+    "content": "Found this hidden gem of a cafe downtown. The atmosphere is cozy, and their pastries are to die for. A perfect spot for a quiet afternoon.",
+    "image_url": "https://picsum.photos/id/431/500/300",
+    "video_url": "",
+    "created_at": "2025-11-01T13:00:00Z"
+  }
+]
