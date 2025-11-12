@@ -3,7 +3,8 @@
     "user": {
       "id": "101",
       "name": "Alice Johnson",
-      "username": "AliceJ"
+      "username": "AliceJ",
+      "profilePic":"https://i.pravatar.cc/150?img=32"
     },
     "id": 1,
     "content": "Just enjoyed a wonderful hike in the mountains! The views were absolutely breathtaking. It's amazing how refreshing a bit of nature can be. Highly recommend it to everyone.",
@@ -16,7 +17,8 @@
     "user": {
       "id": "102",
       "name": "Bob Williams",
-      "username": "BobbyW"
+      "username": "BobbyW",
+      "profilePic":"https://i.pravatar.cc/150?img=60"
     },
     "id": 2,
     "content": "Exploring the city's new art exhibit today. Some truly thought-provoking pieces. Art has a way of speaking to the soul.",
@@ -29,7 +31,8 @@
     "user": {
       "id": "103",
       "name": "Charlie Brown",
-      "username": "ChuckB"
+      "username": "ChuckB",
+      "profilePic":"https://i.pravatar.cc/150?img=59"
     },
     "id": 3,
     "content": "Trying out a new recipe for homemade pasta. It's a bit of work, but the taste is so much better than store-bought. Cooking is therapy!",
@@ -42,7 +45,8 @@
     "user": {
       "id": "104",
       "name": "Diana Miller",
-      "username": "DiMiller"
+      "username": "DiMiller",
+      "profilePic":"https://i.pravatar.cc/150?img=65"
     },
     "id": 4,
     "content": "This new sci-fi book is impossible to put down. The world-building is incredible, and the characters feel so real. A must-read for any genre fan.",
@@ -55,7 +59,8 @@
     "user": {
       "id": "105",
       "name": "Ethan Davis",
-      "username": "EthanD"
+      "username": "EthanD",
+      "profilePic":"https://i.pravatar.cc/150?img=64"
     },
     "id": 5,
     "content": "What a game last night! That last-minute goal was epic. So proud of the team's performance. Can't wait for the next match.",
@@ -68,7 +73,8 @@
     "user": {
       "id": "106",
       "name": "Fiona Garcia",
-      "username": "FionaG"
+      "username": "FionaG",
+      "profilePic":"https://i.pravatar.cc/150?img=47"
     },
     "id": 6,
     "content": "Spending the afternoon coding and listening to lofi beats. There's something so calming about being in the zone and creating something new. #flutterdev",
@@ -81,7 +87,8 @@
     "user": {
       "id": "107",
       "name": "George Rodriguez",
-      "username": "GeoRod"
+      "username": "GeoRod",
+      "profilePic":"https://i.pravatar.cc/150?img=54"
     },
     "id": 7,
     "content": "Morning coffee with a view. Sometimes it's the little moments that make the day special. Hope everyone has a great start to their week!",
@@ -94,7 +101,8 @@
     "user": {
       "id": "108",
       "name": "Hannah Martinez",
-      "username": "HannahM"
+      "username": "HannahM",
+      "profilePic":"https://i.pravatar.cc/150?img=28"
     },
     "id": 8,
     "content": "Just finished a 5k run! Feeling energized and accomplished. Setting small goals and achieving them is a great confidence booster.",
@@ -107,7 +115,8 @@
     "user": {
       "id": "109",
       "name": "Ian Taylor",
-      "username": "IanT"
+      "username": "IanT",
+      "profilePic":"https://i.pravatar.cc/150?img=13"
     },
     "id": 9,
     "content": "Working on a new music track. The creative process is a journey of discovery. It's exciting to see it all come together piece by piece.",
@@ -120,7 +129,8 @@
     "user": {
       "id": "110",
       "name": "Jane Anderson",
-      "username": "JaneA"
+      "username": "JaneA",
+      "profilePic":"https://i.pravatar.cc/150?img=9"
     },
     "id": 10,
     "content": "Found this hidden gem of a cafe downtown. The atmosphere is cozy, and their pastries are to die for. A perfect spot for a quiet afternoon.",
