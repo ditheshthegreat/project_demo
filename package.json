@@ -1,0 +1,37 @@
+{
+  "private": true,
+  "name": "inklusio-backend",
+  "version": "1.0.0",
+  "description": "INKLUSIO Backend - Modular Monolith with Yarn Workspaces",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "yarn workspace @inklusio/api dev",
+    "build": "yarn workspaces run build",
+    "test": "yarn workspaces run test",
+    "test:coverage": "yarn workspaces run test:coverage",
+    "db:migrate": "yarn workspace @inklusio/api db:migrate",
+    "db:generate": "yarn workspace @inklusio/api db:generate",
+    "db:studio": "yarn workspace @inklusio/api db:studio",
+    "clean": "yarn workspaces run clean",
+    "lint": "yarn workspaces run lint"
+  },
+  "keywords": [
+    "nodejs",
+    "typescript",
+    "express",
+    "prisma",
+    "postgresql",
+    "clean-architecture",
+    "yarn-workspaces",
+    "modular-monolith"
+  ],
+  "author": "INKLUSIO Team",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "ts-node": "^10.9.2",
+    "nodemon": "^3.0.2"
+  }
+}

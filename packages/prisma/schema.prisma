@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../api/node_modules/@prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  firebaseUid     String   @unique // Firebase Authentication UID
+  name            String?  // Display name from Firebase
+  email           String?  // Email from Firebase (optional for some providers)
+  phone           String?  // Phone number
+  profileImage    String?  // Profile image URL
+  
+  // Onboarding fields
+  onboardingStep              Int       @default(0)
+  onboardingCompleted         Boolean   @default(false)
+  gender                      String?
+  dateOfBirth                 DateTime?
+  description                 String?
+  city                        String?
+  federalState                String?
+  allowLocation               Boolean   @default(false)
+  interests                   String[]
+  hobbies                     String[]
+  accessibilityRequirements   String[]
+  accessibilityTools          String[]
+  lookingFor                  String[]
+  communicationPreferences    String[]
+  showAge                     Boolean   @default(false)
+  allowMatching               Boolean   @default(true)
+  publicProfile               Boolean   @default(true)
+  allowNotifications          Boolean   @default(true)
+  
+  // Legacy fields (kept for backward compatibility)
+  age             Int?     // Age
+  location        Json?    // Location data (city, state, country, coordinates)
+  accessibility   Json?    // Accessibility needs (screen reader, font size, etc.)
+  preferences     Json?    // User preferences (language, notifications, etc.)
+  
+  roles           Role[]   // User roles
+  isDeleted       Boolean  @default(false) // Soft delete flag
+  deletedAt       DateTime? // Deletion timestamp
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Role {
+  id        String   @id @default(uuid())
+  name      String   // Role name (user, moderator, admin)
+  userId    String   // Foreign key to User
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, name]) // Prevent duplicate roles per user
+  @@map("roles")
+}
