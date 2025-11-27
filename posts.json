@@ -4,139 +4,178 @@
       "id": "101",
       "name": "Alice Johnson",
       "username": "AliceJ",
-      "profilePic":"https://i.pravatar.cc/150?img=32"
+      "profilePic": "https://i.pravatar.cc/150?img=32"
     },
     "id": 1,
     "content": "Just enjoyed a wonderful hike in the mountains! The views were absolutely breathtaking. It's amazing how refreshing a bit of nature can be. Highly recommend it to everyone.",
-    "image_url": "https://picsum.photos/id/1015/500/300",
-    "video_url": "",
+    "media_data": [
+      {
+        "id": 201,
+        "media_url": "https://picsum.photos/id/1015/500/300",
+        "media_name": "flutter_app_screenshot.jpg",
+        "meme_type": "image/jpeg"
+      }
+    ],
     "created_at": "2025-10-22T14:30:00Z",
-    "visibility" : "public"
+    "visibility": "public"
   },
   {
     "user": {
       "id": "102",
       "name": "Bob Williams",
       "username": "BobbyW",
-      "profilePic":"https://i.pravatar.cc/150?img=60"
+      "profilePic": "https://i.pravatar.cc/150?img=60"
     },
     "id": 2,
     "content": "Exploring the city's new art exhibit today. Some truly thought-provoking pieces. Art has a way of speaking to the soul.",
-    "image_url": null,
-    "video_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    "media_data": [
+      {
+        "id": 202,
+        "media_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        "media_name": "ElephantsDream",
+        "meme_type": "video/mp4"
+      }
+    ],
     "created_at": "2025-11-05T09:15:10Z",
-    "visibility" : "public"
+    "visibility": "public"
   },
   {
     "user": {
       "id": "103",
       "name": "Charlie Brown",
       "username": "ChuckB",
-      "profilePic":"https://i.pravatar.cc/150?img=59"
+      "profilePic": "https://i.pravatar.cc/150?img=59"
     },
     "id": 3,
     "content": "Trying out a new recipe for homemade pasta. It's a bit of work, but the taste is so much better than store-bought. Cooking is therapy!",
-    "image_url": null,
-    "video_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    "media_data": [
+      {
+        "id": 203,
+        "media_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        "media_name": "BigBuckBunny",
+        "meme_type": "video/mp4"
+      }
+    ],
     "created_at": "2025-09-18T18:45:00Z",
-    "visibility" : "private"
+    "visibility": "private"
   },
   {
     "user": {
       "id": "104",
       "name": "Diana Miller",
       "username": "DiMiller",
-      "profilePic":"https://i.pravatar.cc/150?img=65"
+      "profilePic": "https://i.pravatar.cc/150?img=65"
     },
     "id": 4,
     "content": "This new sci-fi book is impossible to put down. The world-building is incredible, and the characters feel so real. A must-read for any genre fan.",
-    "image_url": null,
-    "video_url": "",
+    "media_data": null,
     "created_at": "2025-11-08T22:00:05Z",
-    "visibility" : "friends"
+    "visibility": "friends"
   },
   {
     "user": {
       "id": "105",
       "name": "Ethan Davis",
       "username": "EthanD",
-      "profilePic":"https://i.pravatar.cc/150?img=64"
+      "profilePic": "https://i.pravatar.cc/150?img=64"
     },
     "id": 5,
     "content": "What a game last night! That last-minute goal was epic. So proud of the team's performance. Can't wait for the next match.",
-    "image_url": "https://picsum.photos/id/111/500/300",
-    "video_url": "",
+    "media_data": [
+      {
+        "id": 204,
+        "media_url": "https://picsum.photos/id/111/500/300",
+        "media_name": "flutter_app_screenshot.jpg",
+        "meme_type": "image/jpeg"
+      }
+    ],
     "created_at": "2025-10-30T11:55:00Z",
-    "visibility" : "public"
+    "visibility": "public"
   },
   {
     "user": {
       "id": "106",
       "name": "Fiona Garcia",
       "username": "FionaG",
-      "profilePic":"https://i.pravatar.cc/150?img=47"
+      "profilePic": "https://i.pravatar.cc/150?img=47"
     },
     "id": 6,
     "content": "Spending the afternoon coding and listening to lofi beats. There's something so calming about being in the zone and creating something new. #flutterdev",
-    "image_url": null,
-    "video_url": "",
+    "media_data": null,
     "created_at": "2025-11-10T15:20:00Z",
-    "visibility" : "public"
+    "visibility": "public"
   },
   {
     "user": {
       "id": "107",
       "name": "George Rodriguez",
       "username": "GeoRod",
-      "profilePic":"https://i.pravatar.cc/150?img=54"
+      "profilePic": "https://i.pravatar.cc/150?img=54"
     },
     "id": 7,
     "content": "Morning coffee with a view. Sometimes it's the little moments that make the day special. Hope everyone has a great start to their week!",
-    "image_url": "https://picsum.photos/id/225/500/300",
-    "video_url": null,
+    "media_data": [
+      {
+        "id": 205,
+        "media_url": "https://picsum.photos/id/225/500/300",
+        "media_name": "flutter_app_screenshot.jpg",
+        "meme_type": "image/jpeg"
+      }
+    ],
     "created_at": "2025-11-03T07:05:30Z",
-    "visibility" : "friends"
+    "visibility": "friends"
   },
   {
     "user": {
       "id": "108",
       "name": "Hannah Martinez",
       "username": "HannahM",
-      "profilePic":"https://i.pravatar.cc/150?img=28"
+      "profilePic": "https://i.pravatar.cc/150?img=28"
     },
     "id": 8,
     "content": "Just finished a 5k run! Feeling energized and accomplished. Setting small goals and achieving them is a great confidence booster.",
-    "image_url": "https://picsum.photos/id/349/500/300",
-    "video_url": "",
+    "media_data": [
+      {
+        "id": 206,
+        "media_url": "https://picsum.photos/id/349/500/300",
+        "media_name": "flutter_app_screenshot.jpg",
+        "meme_type": "image/jpeg"
+      }
+    ],
     "created_at": "2025-10-15T19:00:00Z",
-    "visibility" : "public"
+    "visibility": "public"
   },
   {
     "user": {
       "id": "109",
       "name": "Ian Taylor",
       "username": "IanT",
-      "profilePic":"https://i.pravatar.cc/150?img=13"
+      "profilePic": "https://i.pravatar.cc/150?img=13"
     },
     "id": 9,
     "content": "Working on a new music track. The creative process is a journey of discovery. It's exciting to see it all come together piece by piece.",
-    "image_url": null,
-    "video_url": "",
+    "media_data": null,
     "created_at": "2025-11-09T16:10:00Z",
-    "visibility" : "private"
+    "visibility": "private"
   },
   {
     "user": {
       "id": "110",
       "name": "Jane Anderson",
       "username": "JaneA",
-      "profilePic":"https://i.pravatar.cc/150?img=9"
+      "profilePic": "https://i.pravatar.cc/150?img=9"
     },
     "id": 10,
     "content": "Found this hidden gem of a cafe downtown. The atmosphere is cozy, and their pastries are to die for. A perfect spot for a quiet afternoon.",
-    "image_url": "https://picsum.photos/id/431/500/300",
-    "video_url": "",
+    "media_data": [
+      {
+        "id": 207,
+        "media_url": "https://picsum.photos/id/431/500/300",
+        "media_name": "flutter_app_screenshot.jpg",
+        "meme_type": "image/jpeg"
+      }
+    ],
     "created_at": "2025-11-01T13:00:00Z",
-    "visibility" : "public"
+    "visibility": "public"
   }
 ]
