@@ -82,11 +82,15 @@ export function setupSwagger(app: Application): void {
           name: "Auth",
           description: "Firebase Authentication endpoints - Verify token and manage user sessions",
         },
+        {
+          name: "Onboarding",
+          description: "User onboarding and profile completion APIs - Complete 6-step onboarding process for new users",
+        },
       ],
     },
     apis: [
-      "./src/modules/**/interfaces/http/*.routes.ts",
-      "./src/modules/**/interfaces/http/*.controller.ts",
+      "./src/modules/**/interfaces/routes/*.routes.ts",
+      "./src/modules/**/interfaces/controllers/*.controller.ts",
     ],
   };
 
