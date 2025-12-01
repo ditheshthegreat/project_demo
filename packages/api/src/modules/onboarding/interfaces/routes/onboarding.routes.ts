@@ -1,6 +1,7 @@
 /**
  * @file onboarding.routes.ts
- * @description Routes for onboarding endpoints
+ * @module Onboarding/Interfaces/Routes
+ * @description Onboarding Routes with Swagger Documentation
  * 
  * @swagger
  * tags:
@@ -9,7 +10,7 @@
  * 
  * components:
  *   securitySchemes:
- *     BearerAuth:
+ *     bearerAuth:
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
@@ -305,8 +306,17 @@ import { Router } from 'express';
 import { OnboardingController } from '../controllers/onboarding.controller';
 import { verifyAuth } from '../../../../shared/middleware/verifyAuth.middleware';
 
-const router = Router();
-const controller = new OnboardingController();
+export class OnboardingRoutes {
+  public router: Router;
+  private onboardingController: OnboardingController;
+
+  constructor(onboardingController: OnboardingController) {
+    this.router = Router();
+    this.onboardingController = onboardingController;
+    this.initializeRoutes();
+  }
+
+  private initializeRoutes(): void {
 
 /**
  * @swagger
@@ -316,7 +326,7 @@ const controller = new OnboardingController();
  *     description: Submit basic user information including gender, date of birth, and optional description
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -349,26 +359,14 @@ const controller = new OnboardingController();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               success: false
- *               message: Validation failed - gender is required
  *       401:
  *         description: Unauthorized - Invalid or missing Firebase token
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               success: false
- *               message: Unauthorized
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/step1', verifyAuth, (req, res) => controller.step1(req, res));
+    this.router.post('/step1', verifyAuth, this.onboardingController.step1.bind(this.onboardingController));
 
 /**
  * @swagger
@@ -378,7 +376,7 @@ router.post('/step1', verifyAuth, (req, res) => controller.step1(req, res));
  *     description: Submit user's location information including city, federal state, and location permission
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -418,7 +416,7 @@ router.post('/step1', verifyAuth, (req, res) => controller.step1(req, res));
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/step2', verifyAuth, (req, res) => controller.step2(req, res));
+    this.router.post('/step2', verifyAuth, this.onboardingController.step2.bind(this.onboardingController));
 
 /**
  * @swagger
@@ -428,7 +426,7 @@ router.post('/step2', verifyAuth, (req, res) => controller.step2(req, res));
  *     description: Submit user's interests - at least 3 interests must be selected from the allowed list
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -472,7 +470,7 @@ router.post('/step2', verifyAuth, (req, res) => controller.step2(req, res));
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/step3', verifyAuth, (req, res) => controller.step3(req, res));
+    this.router.post('/step3', verifyAuth, this.onboardingController.step3.bind(this.onboardingController));
 
 /**
  * @swagger
@@ -482,7 +480,7 @@ router.post('/step3', verifyAuth, (req, res) => controller.step3(req, res));
  *     description: Submit user's hobbies - at least 1 hobby must be selected from the allowed list
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -526,7 +524,7 @@ router.post('/step3', verifyAuth, (req, res) => controller.step3(req, res));
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/step4', verifyAuth, (req, res) => controller.step4(req, res));
+    this.router.post('/step4', verifyAuth, this.onboardingController.step4.bind(this.onboardingController));
 
 /**
  * @swagger
@@ -536,7 +534,7 @@ router.post('/step4', verifyAuth, (req, res) => controller.step4(req, res));
  *     description: Submit user's accessibility requirements to help match with appropriate activities and venues
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -576,7 +574,7 @@ router.post('/step4', verifyAuth, (req, res) => controller.step4(req, res));
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/step5/requirements', verifyAuth, (req, res) => controller.step5Requirements(req, res));
+    this.router.post('/step5/requirements', verifyAuth, this.onboardingController.step5Requirements.bind(this.onboardingController));
 
 /**
  * @swagger
@@ -586,7 +584,7 @@ router.post('/step5/requirements', verifyAuth, (req, res) => controller.step5Req
  *     description: Submit accessibility tools the user uses to inform matching and activity suggestions
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -626,7 +624,7 @@ router.post('/step5/requirements', verifyAuth, (req, res) => controller.step5Req
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/step5/tools', verifyAuth, (req, res) => controller.step5Tools(req, res));
+    this.router.post('/step5/tools', verifyAuth, this.onboardingController.step5Tools.bind(this.onboardingController));
 
 /**
  * @swagger
@@ -636,7 +634,7 @@ router.post('/step5/tools', verifyAuth, (req, res) => controller.step5Tools(req,
  *     description: Submit what the user is looking for on the platform (minimum 1 required) to improve matching
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -676,7 +674,7 @@ router.post('/step5/tools', verifyAuth, (req, res) => controller.step5Tools(req,
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/step5/looking-for', verifyAuth, (req, res) => controller.step5LookingFor(req, res));
+    this.router.post('/step5/looking-for', verifyAuth, this.onboardingController.step5LookingFor.bind(this.onboardingController));
 
 /**
  * @swagger
@@ -686,7 +684,7 @@ router.post('/step5/looking-for', verifyAuth, (req, res) => controller.step5Look
  *     description: Submit user's preferred communication methods (minimum 1 required) for connecting with others
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -726,7 +724,7 @@ router.post('/step5/looking-for', verifyAuth, (req, res) => controller.step5Look
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/step5/communication', verifyAuth, (req, res) => controller.step5Communication(req, res));
+    this.router.post('/step5/communication', verifyAuth, this.onboardingController.step5Communication.bind(this.onboardingController));
 
 /**
  * @swagger
@@ -736,7 +734,7 @@ router.post('/step5/communication', verifyAuth, (req, res) => controller.step5Co
  *     description: Submit user's privacy preferences including location, age visibility, matching, profile visibility, and notifications
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -776,7 +774,7 @@ router.post('/step5/communication', verifyAuth, (req, res) => controller.step5Co
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/step6', verifyAuth, (req, res) => controller.step6(req, res));
+    this.router.post('/step6', verifyAuth, this.onboardingController.step6.bind(this.onboardingController));
 
 /**
  * @swagger
@@ -786,7 +784,7 @@ router.post('/step6', verifyAuth, (req, res) => controller.step6(req, res));
  *     description: Mark the onboarding process as complete after all 6 steps are finished
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Onboarding completed successfully
@@ -820,7 +818,7 @@ router.post('/step6', verifyAuth, (req, res) => controller.step6(req, res));
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/complete', verifyAuth, (req, res) => controller.complete(req, res));
+    this.router.post('/complete', verifyAuth, this.onboardingController.complete.bind(this.onboardingController));
 
 /**
  * @swagger
@@ -830,7 +828,7 @@ router.post('/complete', verifyAuth, (req, res) => controller.complete(req, res)
  *     description: Retrieve current onboarding progress including completed steps and user data
  *     tags: [Onboarding]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Onboarding status retrieved successfully
@@ -851,6 +849,11 @@ router.post('/complete', verifyAuth, (req, res) => controller.complete(req, res)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/status', verifyAuth, (req, res) => controller.getStatus(req, res));
+    this.router.get('/status', verifyAuth, this.onboardingController.getStatus.bind(this.onboardingController));
 
-export default router;
+  }
+
+  public getRouter(): Router {
+    return this.router;
+  }
+}

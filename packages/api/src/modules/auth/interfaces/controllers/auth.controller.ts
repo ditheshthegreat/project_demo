@@ -1,6 +1,6 @@
 /**
  * @file auth.controller.ts
- * @module Auth/Interfaces/HTTP
+ * @module Auth/Interfaces/Controllers
  * @layer Interface
  * @description Auth Controller - Complete HTTP Request Handlers for Firebase Auth
  */

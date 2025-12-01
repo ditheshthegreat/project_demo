@@ -1,11 +1,11 @@
 /**
  * @file auth.routes.ts
- * @module Auth/Interfaces/HTTP
+ * @module Auth/Interfaces/Routes
  * @description Complete Firebase Auth Routes with Swagger Documentation
  */
 
 import { Router } from "express";
-import { AuthController } from "./auth.controller";
+import { AuthController } from "../controllers/auth.controller";
 import { verifyAuth } from "../../../../shared/middleware/verifyAuth.middleware";
 
 export class AuthRoutes {

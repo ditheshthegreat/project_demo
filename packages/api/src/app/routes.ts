@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { authRouter } from "../modules/auth/auth.module";
-import onboardingRoutes from "../modules/onboarding/interfaces/routes/onboarding.routes";
+import { onboardingRouter } from "../modules/onboarding/onboarding.module";
 
 const router = Router();
 
 // Health check endpoint
 router.get("/health", (req, res) => {
-  res.status(200).json({
+  res.json({
     success: true,
-    message: "Server is running",
+    message: "API is running",
     timestamp: new Date().toISOString(),
   });
 });
@@ -17,6 +17,6 @@ router.get("/health", (req, res) => {
 router.use("/auth", authRouter);
 
 // Mount onboarding module
-router.use("/onboarding", onboardingRoutes);
+router.use("/onboarding", onboardingRouter);
 
 export default router;

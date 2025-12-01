@@ -35,8 +35,8 @@ import { SendPasswordResetUseCase } from "./application/usecases/sendPasswordRes
 import { SendEmailVerificationUseCase } from "./application/usecases/sendEmailVerification.usecase";
 import { LinkProviderUseCase } from "./application/usecases/linkProvider.usecase";
 import { UnlinkProviderUseCase } from "./application/usecases/unlinkProvider.usecase";
-import { AuthController } from "./interfaces/http/auth.controller";
-import { AuthRoutes } from "./interfaces/http/auth.routes";
+import { AuthController } from "./interfaces/controllers/auth.controller";
+import { AuthRoutes } from "./interfaces/routes/auth.routes";
 
 /**
  * Auth Module
