@@ -6,6 +6,7 @@
  */
 
 import { firebaseAuth } from '../../../../shared/infra/firebase/firebaseClient';
+import { BadRequestException } from '../../../../shared/core/exceptions/AppException';
 
 export interface SendEmailVerificationDTO {
   email: string;
@@ -21,7 +22,10 @@ export class SendEmailVerificationUseCase {
       // For now, return the link
       return verificationLink;
     } catch (error: any) {
-      throw new Error(`Failed to generate email verification link: ${error.message}`);
+      throw new BadRequestException(
+        `Failed to generate email verification link: ${error.message}`,
+        'EMAIL_VERIFICATION_ERROR'
+      );
     }
   }
 }

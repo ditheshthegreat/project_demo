@@ -6,6 +6,10 @@
  */
 
 import { firebaseAuth } from '../../../../shared/infra/firebase/firebaseClient';
+import { 
+  BadRequestException, 
+  NotFoundException 
+} from '../../../../shared/core/exceptions/AppException';
 
 export interface UnlinkProviderDTO {
   firebaseUid: string;
@@ -20,7 +24,10 @@ export class UnlinkProviderUseCase {
       
       // Check if user has multiple providers
       if (userRecord.providerData.length <= 1) {
-        throw new Error('Cannot unlink the only authentication provider');
+        throw new BadRequestException(
+          'Cannot unlink the only authentication provider. At least one provider must remain linked.',
+          'LAST_PROVIDER_ERROR'
+        );
       }
 
       // Check if provider is linked
@@ -29,14 +36,27 @@ export class UnlinkProviderUseCase {
       );
       
       if (!providerExists) {
-        throw new Error(`Provider ${dto.provider} is not linked to this account`);
+        throw new NotFoundException(
+          `Provider ${dto.provider} is not linked to this account`,
+          'PROVIDER_NOT_FOUND'
+        );
       }
 
       // In Firebase, provider unlinking must be done client-side
       // This endpoint can be used for validation or logging
       console.log(`Provider ${dto.provider} unlinking initiated for user ${dto.firebaseUid}`);
     } catch (error: any) {
-      throw new Error(`Failed to unlink provider: ${error.message}`);
+      // Re-throw AppException errors as-is (they already have proper status and code)
+      if (error.name === 'AppException' || 
+          error instanceof BadRequestException || 
+          error instanceof NotFoundException) {
+        throw error;
+      }
+      // Wrap other errors in BadRequestException
+      throw new BadRequestException(
+        error.message || 'Failed to unlink provider',
+        'UNLINK_PROVIDER_ERROR'
+      );
     }
   }
 }

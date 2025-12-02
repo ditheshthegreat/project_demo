@@ -7,6 +7,7 @@ import { PrismaClient } from '@prisma/client';
 import { OnboardingRepository } from '../../domain/repositories/onboarding.repository';
 import { OnboardingStatus } from '../../domain/entities/onboardingData.entity';
 import { TOTAL_ONBOARDING_STEPS } from '../../domain/constants/onboarding.constants';
+import { NotFoundException } from '../../../../shared/core/exceptions/AppException';
 
 export class OnboardingRepositoryImpl implements OnboardingRepository {
   constructor(private prisma: PrismaClient) {}
@@ -174,7 +175,7 @@ export class OnboardingRepositoryImpl implements OnboardingRepository {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found', 'USER_NOT_FOUND');
     }
 
     const completedSteps: number[] = [];

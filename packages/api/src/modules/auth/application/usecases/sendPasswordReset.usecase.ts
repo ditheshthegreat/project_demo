@@ -6,6 +6,7 @@
  */
 
 import { firebaseAuth } from '../../../../shared/infra/firebase/firebaseClient';
+import { BadRequestException } from '../../../../shared/core/exceptions/AppException';
 
 export interface SendPasswordResetDTO {
   email: string;
@@ -21,7 +22,10 @@ export class SendPasswordResetUseCase {
       // For now, return the link
       return resetLink;
     } catch (error: any) {
-      throw new Error(`Failed to generate password reset link: ${error.message}`);
+      throw new BadRequestException(
+        `Failed to generate password reset link: ${error.message}`,
+        'PASSWORD_RESET_ERROR'
+      );
     }
   }
 }

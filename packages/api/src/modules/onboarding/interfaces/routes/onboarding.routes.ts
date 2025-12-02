@@ -320,7 +320,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/step1:
+ * /api/onboarding/step1:
  *   post:
  *     summary: Complete Step 1 - Basic Information
  *     description: Submit basic user information including gender, date of birth, and optional description
@@ -370,7 +370,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/step2:
+ * /api/onboarding/step2:
  *   post:
  *     summary: Complete Step 2 - Location Information
  *     description: Submit user's location information including city, federal state, and location permission
@@ -420,7 +420,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/step3:
+ * /api/onboarding/step3:
  *   post:
  *     summary: Complete Step 3 - Interests (minimum 3 required)
  *     description: Submit user's interests - at least 3 interests must be selected from the allowed list
@@ -474,7 +474,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/step4:
+ * /api/onboarding/step4:
  *   post:
  *     summary: Complete Step 4 - Hobbies
  *     description: Submit user's hobbies - at least 1 hobby must be selected from the allowed list
@@ -528,7 +528,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/step5/requirements:
+ * /api/onboarding/step5/requirements:
  *   post:
  *     summary: Complete Step 5.1 - Accessibility Requirements
  *     description: Submit user's accessibility requirements to help match with appropriate activities and venues
@@ -578,7 +578,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/step5/tools:
+ * /api/onboarding/step5/tools:
  *   post:
  *     summary: Complete Step 5.2 - Accessibility Tools
  *     description: Submit accessibility tools the user uses to inform matching and activity suggestions
@@ -628,7 +628,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/step5/looking-for:
+ * /api/onboarding/step5/looking-for:
  *   post:
  *     summary: Complete Step 5.3 - What Are You Looking For
  *     description: Submit what the user is looking for on the platform (minimum 1 required) to improve matching
@@ -678,7 +678,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/step5/communication:
+ * /api/onboarding/step5/communication:
  *   post:
  *     summary: Complete Step 5.4 - Communication Preferences
  *     description: Submit user's preferred communication methods (minimum 1 required) for connecting with others
@@ -728,7 +728,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/step6:
+ * /api/onboarding/step6:
  *   post:
  *     summary: Complete Step 6 - Privacy Settings
  *     description: Submit user's privacy preferences including location, age visibility, matching, profile visibility, and notifications
@@ -778,7 +778,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/complete:
+ * /api/onboarding/complete:
  *   post:
  *     summary: Complete onboarding process
  *     description: Mark the onboarding process as complete after all 6 steps are finished
@@ -822,7 +822,7 @@ export class OnboardingRoutes {
 
 /**
  * @swagger
- * /onboarding/status:
+ * /api/onboarding/status:
  *   get:
  *     summary: Get onboarding status
  *     description: Retrieve current onboarding progress including completed steps and user data

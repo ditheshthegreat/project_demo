@@ -6,6 +6,10 @@
  */
 
 import { firebaseAuth } from '../../../../shared/infra/firebase/firebaseClient';
+import { 
+  BadRequestException, 
+  ConflictException 
+} from '../../../../shared/core/exceptions/AppException';
 
 export interface LinkProviderDTO {
   firebaseUid: string;
@@ -28,14 +32,27 @@ export class LinkProviderUseCase {
       );
       
       if (providerExists) {
-        throw new Error(`Provider ${dto.provider} is already linked to this account`);
+        throw new ConflictException(
+          `Provider ${dto.provider} is already linked to this account`,
+          'PROVIDER_ALREADY_LINKED'
+        );
       }
 
       // In Firebase, provider linking must be done client-side
       // This endpoint can be used for validation or logging
       console.log(`Provider ${dto.provider} linking initiated for user ${dto.firebaseUid}`);
     } catch (error: any) {
-      throw new Error(`Failed to link provider: ${error.message}`);
+      // Re-throw AppException errors as-is (they already have proper status and code)
+      if (error.name === 'AppException' || 
+          error instanceof ConflictException || 
+          error instanceof BadRequestException) {
+        throw error;
+      }
+      // Wrap other errors in BadRequestException
+      throw new BadRequestException(
+        error.message || 'Failed to link provider',
+        'LINK_PROVIDER_ERROR'
+      );
     }
   }
 }

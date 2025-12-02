@@ -7,6 +7,7 @@
 
 import { IUserRepository } from '../../domain/repositories/IUserRepository';
 import { firebaseAuth } from '../../../../shared/infra/firebase/firebaseClient';
+import { NotFoundException, ConflictException } from '../../../../shared/core/exceptions/AppException';
 
 export interface DeleteUserDTO {
   firebaseUid: string;
@@ -20,11 +21,11 @@ export class DeleteUserUseCase {
     const user = await this.userRepository.findByFirebaseUid(dto.firebaseUid);
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found', 'USER_NOT_FOUND');
     }
 
     if (user.isDeleted) {
-      throw new Error('User account already deleted');
+      throw new ConflictException('User account already deleted', 'USER_ALREADY_DELETED');
     }
 
     // Soft delete in database

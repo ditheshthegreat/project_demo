@@ -7,6 +7,7 @@
 
 import { User } from '../../domain/user.entity';
 import { IUserRepository } from '../../domain/repositories/IUserRepository';
+import { NotFoundException, ForbiddenException } from '../../../../shared/core/exceptions/AppException';
 
 export interface UpdateUserDTO {
   firebaseUid: string;
@@ -27,11 +28,11 @@ export class UpdateUserUseCase {
     const user = await this.userRepository.findByFirebaseUid(dto.firebaseUid);
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found', 'USER_NOT_FOUND');
     }
 
     if (user.isDeleted) {
-      throw new Error('User account has been deleted');
+      throw new ForbiddenException('User account has been deleted', 'USER_DELETED');
     }
 
     // Update user with new data
