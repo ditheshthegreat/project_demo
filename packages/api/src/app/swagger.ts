@@ -26,7 +26,11 @@ export function setupSwagger(app: Application): void {
           description: "Local development server",
         },
         {
-          url: "https://api.inklusio.com",
+          url: "https://dev.api.inklusio-digital.com",
+          description: "Development server",
+        },
+        {
+          url: "https://api.inklusio-digital.com",
           description: "Production server",
         },
       ],
@@ -111,6 +115,8 @@ export function setupSwagger(app: Application): void {
     res.send(swaggerSpec);
   });
 
-  console.log("📚 Swagger Docs available at http://localhost:3000/api/docs");
-  console.log("📄 Swagger JSON at http://localhost:3000/api/docs.json");
+  // Get the appropriate base URL based on environment
+  const baseUrl = process.env.API_URL || "http://localhost:3000";
+  console.log("📚 Swagger Docs available at", `${baseUrl}/api/docs`);
+  console.log("📄 Swagger JSON at", `${baseUrl}/api/docs.json`);
 }
