@@ -90,6 +90,72 @@ export class AuthRoutes {
 
     /**
      * @swagger
+     * /api/auth/dev/login:
+     *   post:
+     *     summary: Development login - Get Firebase token
+     *     description: |
+     *       **DEVELOPMENT ONLY** - Returns Firebase ID token for testing.
+     *       Disabled in production. Use the returned idToken as Bearer token.
+     *     tags: [Auth]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - email
+     *               - password
+     *             properties:
+     *               email:
+     *                 type: string
+     *                 format: email
+     *                 example: ajith@inklusio.com
+     *               password:
+     *                 type: string
+     *                 format: password
+     *                 example: Ajith@123
+     *     responses:
+     *       200:
+     *         description: Login successful - Copy the idToken
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     idToken:
+     *                       type: string
+     *                       description: Use this as Bearer token
+     *                       example: eyJhbGciOiJSUzI1NiIsImtpZCI6Ijk4OGQ1...
+     *                     refreshToken:
+     *                       type: string
+     *                     expiresIn:
+     *                       type: string
+     *                       example: "3600"
+     *                     localId:
+     *                       type: string
+     *                     email:
+     *                       type: string
+     *                 message:
+     *                   type: string
+     *                   example: Login successful - use idToken as Bearer token
+     *       400:
+     *         description: Missing email or password
+     *       401:
+     *         description: Invalid credentials
+     *       403:
+     *         description: Endpoint disabled in production
+     */
+    this.router.post("/dev/login", this.authController.devLogin);
+
+    /**
+     * @swagger
      * /api/auth/me:
      *   put:
      *     summary: Update user profile

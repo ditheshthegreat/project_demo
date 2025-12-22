@@ -5,7 +5,7 @@
  * @description Auth Controller - Complete HTTP Request Handlers for Firebase Auth
  */
 
-import { Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { AuthRequest } from "../../../../shared/middleware/verifyAuth.middleware";
 import { VerifyUserUseCase } from "../../application/usecases/verifyUser.usecase";
 import { GetUserUseCase } from "../../application/usecases/getUser.usecase";
@@ -17,6 +17,7 @@ import { SendPasswordResetUseCase } from "../../application/usecases/sendPasswor
 import { SendEmailVerificationUseCase } from "../../application/usecases/sendEmailVerification.usecase";
 import { LinkProviderUseCase } from "../../application/usecases/linkProvider.usecase";
 import { UnlinkProviderUseCase } from "../../application/usecases/unlinkProvider.usecase";
+import axios from "axios";
 
 export class AuthController {
   constructor(
@@ -367,6 +368,72 @@ export class AuthController {
       });
     } catch (error) {
       next(error);
+    }
+  };
+
+  /**
+   * POST /auth/dev/login
+   * DEVELOPMENT ONLY: Get Firebase token via email/password
+   * DO NOT USE IN PRODUCTION
+   */
+  devLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (process.env.NODE_ENV === 'production') {
+        res.status(403).json({
+          success: false,
+          message: "This endpoint is only available in development mode",
+        });
+        return;
+      }
+
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        res.status(400).json({
+          success: false,
+          message: "Email and password are required",
+        });
+        return;
+      }
+
+      const apiKey = process.env.FIREBASE_WEB_API_KEY;
+      if (!apiKey) {
+        res.status(500).json({
+          success: false,
+          message: "Firebase Web API Key not configured",
+        });
+        return;
+      }
+
+      const response = await axios.post(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+        {
+          email,
+          password,
+          returnSecureToken: true,
+        }
+      );
+
+      res.status(200).json({
+        success: true,
+        data: {
+          idToken: response.data.idToken,
+          refreshToken: response.data.refreshToken,
+          expiresIn: response.data.expiresIn,
+          localId: response.data.localId,
+          email: response.data.email,
+        },
+        message: "Login successful - use idToken as Bearer token",
+      });
+    } catch (error: any) {
+      if (error.response?.data) {
+        res.status(401).json({
+          success: false,
+          message: error.response.data.error?.message || "Authentication failed",
+        });
+      } else {
+        next(error);
+      }
     }
   };
 }

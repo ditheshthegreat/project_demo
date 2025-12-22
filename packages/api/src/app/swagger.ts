@@ -90,6 +90,10 @@ export function setupSwagger(app: Application): void {
           name: "Onboarding",
           description: "User onboarding and profile completion APIs - Complete 6-step onboarding process for new users",
         },
+        {
+          name: "Community",
+          description: "Community feed APIs - Create and view posts (photo, location, review)",
+        },
       ],
     },
     apis: [

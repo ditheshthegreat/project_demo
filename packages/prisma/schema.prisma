@@ -45,7 +45,22 @@ model User {
   accessibility   Json?    // Accessibility needs (screen reader, font size, etc.)
   preferences     Json?    // User preferences (language, notifications, etc.)
   
+  // Feed preferences (separate from onboarding)
+  feedPreferences Json?    // Feed-specific settings (interests, accessibility, distance, visibility)
+  
   roles           Role[]   // User roles
+  
+  // Community relations
+  feedPosts       FeedPost[]      // Posts created by user
+  feedComments    FeedComment[]   // Comments created by user
+  feedLikes       FeedLike[]      // Likes by user
+  friendRequestsSent     FriendRequest[] @relation("FriendRequestSender")
+  friendRequestsReceived FriendRequest[] @relation("FriendRequestReceiver")
+  friendshipsInitiated   Friendship[]    @relation("FriendshipInitiator")
+  friendshipsReceived    Friendship[]    @relation("FriendshipReceiver")
+  conversationsCreated   Conversation[]  @relation("ConversationCreator")
+  conversationParticipations ConversationParticipant[] @relation("ConversationParticipants")
+  
   isDeleted       Boolean  @default(false) // Soft delete flag
   deletedAt       DateTime? // Deletion timestamp
   createdAt       DateTime @default(now())
@@ -63,4 +78,169 @@ model Role {
   
   @@unique([userId, name]) // Prevent duplicate roles per user
   @@map("roles")
+}
+
+// ============================================================================
+// COMMUNITY MODULE MODELS
+// ============================================================================
+
+model FeedPost {
+  id            String        @id @default(uuid())
+  userId        String        // Author of the post
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedType      String        @default("photo") // Feed type: photo, location, review
+  visibility    String        @default("public") // Visibility: public, friends, private
+  content       String        @db.Text // Post content
+  imageUrl      String?       // Optional image URL (backward compatibility)
+  likesCount    Int           @default(0) // Denormalized count for performance
+  commentsCount Int           @default(0) // Denormalized count for performance
+  
+  // Relations
+  images        FeedImage[]   // Post images (max 5)
+  comments      FeedComment[] // Comments on this post
+  likes         FeedLike[]    // Likes on this post
+  
+  // Soft delete
+  isDeleted     Boolean       @default(false)
+  deletedAt     DateTime?
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  @@index([userId])
+  @@index([feedType])
+  @@index([visibility])
+  @@index([createdAt])
+  @@map("feed_posts")
+}
+
+model FeedImage {
+  id          String    @id @default(uuid())
+  postId      String    // Post this image belongs to
+  post        FeedPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  s3Key       String    // S3 object key (e.g., "feeds/123456-image.jpg")
+  filename    String    // Original filename
+  mimeType    String    // MIME type (e.g., "image/jpeg")
+  fileSize    Int       // File size in bytes
+  width       Int?      // Image width in pixels
+  height      Int?      // Image height in pixels
+  order       Int       @default(0) // Display order (0-4 for max 5 images)
+  status      String    @default("ready") // Status: ready, processing, failed
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([postId])
+  @@index([order])
+  @@map("feed_images")
+}
+
+model FeedComment {
+  id        String    @id @default(uuid())
+  postId    String    // Post this comment belongs to
+  post      FeedPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String    // Author of the comment
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String    @db.Text // Comment content
+  
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("feed_comments")
+}
+
+model FeedLike {
+  id        String   @id @default(uuid())
+  postId    String   // Post this like belongs to
+  post      FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String   // User who liked the post
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([postId, userId]) // One like per user per post
+  @@index([postId])
+  @@index([userId])
+  @@map("feed_likes")
+}
+
+model FriendRequest {
+  id         String   @id @default(uuid())
+  senderId   String   // User who sent the friend request
+  sender     User     @relation("FriendRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String   // User who received the friend request
+  receiver   User     @relation("FriendRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  status     String   @default("pending") // pending, accepted, rejected
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  @@unique([senderId, receiverId]) // One request per user pair
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([status])
+  @@map("friend_requests")
+}
+
+model Friendship {
+  id         String    @id @default(uuid())
+  userId     String    // First user in friendship
+  user       User      @relation("FriendshipInitiator", fields: [userId], references: [id], onDelete: Cascade)
+  friendId   String    // Second user in friendship
+  friend     User      @relation("FriendshipReceiver", fields: [friendId], references: [id], onDelete: Cascade)
+  status     String    @default("pending") // pending, accepted, rejected, blocked
+  acceptedAt DateTime? // When friendship was accepted
+  
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  
+  @@unique([userId, friendId]) // One friendship per user pair
+  @@index([userId])
+  @@index([friendId])
+  @@index([status])
+  @@map("friendships")
+}
+
+model Conversation {
+  id            String                    @id @default(uuid())
+  type          String                    @default("PRIVATE") // PRIVATE (1-to-1) or GROUP (future)
+  lastMessageAt DateTime?                 // Last message timestamp for sorting
+  createdById   String                    // User who initiated the conversation
+  createdBy     User                      @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  
+  // Many-to-many relation with users through join table
+  participants  ConversationParticipant[]
+  
+  // Soft delete
+  isDeleted     Boolean                   @default(false)
+  deletedAt     DateTime?
+  
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  
+  @@index([createdAt])
+  @@index([lastMessageAt])
+  @@index([type])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String       // Conversation this participant belongs to
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String       // User who is a participant
+  user           User         @relation("ConversationParticipants", fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt       DateTime     @default(now()) // When user joined the conversation
+  
+  @@unique([conversationId, userId]) // One record per user per conversation
+  @@index([conversationId])
+  @@index([userId])
+  @@map("conversation_participants")
 }
