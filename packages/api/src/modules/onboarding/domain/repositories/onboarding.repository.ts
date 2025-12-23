@@ -27,6 +27,8 @@ export interface OnboardingRepository {
       city: string;
       federalState: string;
       allowLocation: boolean;
+      latitude?: number | null;
+      longitude?: number | null;
     }
   ): Promise<void>;
 

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authRouter } from "../modules/auth/auth.module";
 import { onboardingRouter } from "../modules/onboarding/onboarding.module";
 import { communityRouter } from "../modules/community/community.module";
+import { notificationsRouter } from "../modules/notifications/notifications.module";
 
 const router = Router();
 
@@ -22,5 +23,8 @@ router.use("/onboarding", onboardingRouter);
 
 // Mount community module
 router.use("/community", communityRouter);
+
+// Mount notifications module
+router.use("/notifications", notificationsRouter);
 
 export default router;

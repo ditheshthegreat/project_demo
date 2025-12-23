@@ -9,6 +9,8 @@ export const Step2Schema = z.object({
   city: z.string().min(1, 'City is required'),
   federalState: z.string().min(1, 'Federal state is required'),
   allowLocation: z.boolean(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 export type Step2DTO = z.infer<typeof Step2Schema>;

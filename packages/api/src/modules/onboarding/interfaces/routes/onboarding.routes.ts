@@ -78,6 +78,16 @@
  *           type: boolean
  *           description: Whether to allow location-based features
  *           example: true
+ *         latitude:
+ *           type: number
+ *           format: float
+ *           description: GPS latitude (optional, only used when allowLocation is true)
+ *           example: 52.5200
+ *         longitude:
+ *           type: number
+ *           format: float
+ *           description: GPS longitude (optional, only used when allowLocation is true)
+ *           example: 13.4050
  * 
  *     Step3InterestsDto:
  *       type: object

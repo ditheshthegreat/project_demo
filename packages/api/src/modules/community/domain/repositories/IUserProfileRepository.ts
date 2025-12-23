@@ -21,6 +21,7 @@ export interface UserProfile {
   accessibilityRequirements: string[];
   description: string | null;
   onboardingCompleted: boolean;
+  distanceKm?: number | null;
 }
 
 export interface ExploreFilters {

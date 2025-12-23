@@ -37,6 +37,8 @@ export class OnboardingRepositoryImpl implements OnboardingRepository {
       city: string;
       federalState: string;
       allowLocation: boolean;
+      latitude?: number | null;
+      longitude?: number | null;
     }
   ): Promise<void> {
     await this.prisma.user.update({
@@ -45,6 +47,8 @@ export class OnboardingRepositoryImpl implements OnboardingRepository {
         city: data.city,
         federalState: data.federalState,
         allowLocation: data.allowLocation,
+        latitude: data.latitude ?? null,
+        longitude: data.longitude ?? null,
         onboardingStep: Math.max(2, (await this.getCurrentStep(userId)) || 0),
       },
     });
@@ -160,6 +164,8 @@ export class OnboardingRepositoryImpl implements OnboardingRepository {
         description: true,
         city: true,
         federalState: true,
+        latitude: true,
+        longitude: true,
         allowLocation: true,
         interests: true,
         hobbies: true,
@@ -210,6 +216,8 @@ export class OnboardingRepositoryImpl implements OnboardingRepository {
         description: user.description || undefined,
         city: user.city || undefined,
         federalState: user.federalState || undefined,
+        latitude: user.latitude ?? undefined,
+        longitude: user.longitude ?? undefined,
         allowLocation: user.allowLocation,
         interests: user.interests || [],
         hobbies: user.hobbies || [],

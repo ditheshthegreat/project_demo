@@ -121,6 +121,12 @@ export class ExploreRoutes {
      *                           type: string
      *                       description:
      *                         type: string
+     *                       distanceKm:
+     *                         type: number
+     *                         format: float
+     *                         nullable: true
+     *                         description: Distance in kilometers from current user (null if coordinates unavailable)
+     *                         example: 2.8
      *       401:
      *         description: Unauthorized
      */
@@ -226,6 +232,12 @@ export class ExploreRoutes {
      *                         type: array
      *                         items:
      *                           type: string
+     *                       distanceKm:
+     *                         type: number
+     *                         format: float
+     *                         nullable: true
+     *                         description: Distance in kilometers from current user (null if coordinates unavailable)
+     *                         example: 2.8
      *       401:
      *         description: Unauthorized
      */
@@ -240,7 +252,7 @@ export class ExploreRoutes {
      * /api/community/explore/nearby:
      *   get:
      *     summary: Find nearby users
-     *     description: Discover users in the same city based on location
+     *     description: Discover users within specified distance radius (default 50km). Both users must have location permission enabled and GPS coordinates stored.
      *     tags: [Community]
      *     security:
      *       - bearerAuth: []
@@ -321,6 +333,11 @@ export class ExploreRoutes {
      *                         type: array
      *                         items:
      *                           type: string
+     *                       distanceKm:
+     *                         type: number
+     *                         format: float
+     *                         description: Distance in kilometers from current user (always available for nearby users)
+     *                         example: 2.8
      *       401:
      *         description: Unauthorized
      */

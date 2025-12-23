@@ -23,12 +23,32 @@ export class AuthRoutes {
     /**
      * @swagger
      * /api/auth/verify:
-     *   get:
+     *   post:
      *     summary: Verify Firebase token and sync user profile
-     *     description: Verifies Firebase ID token and ensures user exists in database. Creates user on first login.
+     *     description: Verifies Firebase ID token and ensures user exists in database. Creates user on first login. Optionally registers FCM push token for notifications.
      *     tags: [Auth]
      *     security:
      *       - bearerAuth: []
+     *     requestBody:
+     *       required: false
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               fcmToken:
+     *                 type: string
+     *                 description: Firebase Cloud Messaging token (optional)
+     *                 example: "fKj8zXqT3E:APA91bF..."
+     *               deviceType:
+     *                 type: string
+     *                 enum: [ANDROID, IOS, WEB]
+     *                 description: Device platform type (required if fcmToken provided)
+     *                 example: "ANDROID"
+     *               deviceId:
+     *                 type: string
+     *                 description: Optional device identifier
+     *                 example: "device-12345"
      *     responses:
      *       200:
      *         description: User verified successfully
@@ -49,11 +69,33 @@ export class AuthRoutes {
      *                   type: string
      *                   example: "User verified successfully"
      *       401:
-     *         $ref: '#/components/responses/Unauthorized'
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Unauthorized"
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
-    this.router.get("/verify", verifyAuth, this.authController.verify);
+    this.router.post("/verify", verifyAuth, this.authController.verify);
 
     /**
      * @swagger
@@ -81,11 +123,33 @@ export class AuthRoutes {
      *                     user:
      *                       $ref: '#/components/schemas/User'
      *       401:
-     *         $ref: '#/components/responses/Unauthorized'
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Unauthorized"
      *       404:
      *         description: User not found
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
     this.router.get("/me", verifyAuth, this.authController.getMe);
 
@@ -304,9 +368,31 @@ export class AuthRoutes {
      *       400:
      *         description: Invalid file type or size
      *       401:
-     *         $ref: '#/components/responses/Unauthorized'
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Unauthorized"
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
     this.router.put("/me", verifyAuth, uploadProfileImage as any, this.authController.updateMe);
 
@@ -344,9 +430,31 @@ export class AuthRoutes {
      *                   type: string
      *                   example: "Account deleted successfully"
      *       401:
-     *         $ref: '#/components/responses/Unauthorized'
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Unauthorized"
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
     this.router.delete("/delete", verifyAuth, this.authController.deleteAccount);
 
@@ -379,9 +487,31 @@ export class AuthRoutes {
      *                         type: string
      *                       example: ["user", "moderator"]
      *       401:
-     *         $ref: '#/components/responses/Unauthorized'
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Unauthorized"
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
     this.router.get("/role", verifyAuth, this.authController.getRoles);
 
@@ -429,7 +559,18 @@ export class AuthRoutes {
      *       400:
      *         description: Token is required
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
     this.router.post("/validate", this.authController.validateToken);
 
@@ -438,10 +579,21 @@ export class AuthRoutes {
      * /api/auth/signout:
      *   post:
      *     summary: Sign out user
-     *     description: Revokes all Firebase refresh tokens for the user
+     *     description: Revokes all Firebase refresh tokens for the user. Optionally removes device-specific FCM push token.
      *     tags: [Auth]
      *     security:
      *       - bearerAuth: []
+     *     requestBody:
+     *       required: false
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               fcmToken:
+     *                 type: string
+     *                 description: FCM token to remove from this device (optional)
+     *                 example: "fKj8zXqT3E:APA91bF..."
      *     responses:
      *       200:
      *         description: User signed out successfully
@@ -457,9 +609,31 @@ export class AuthRoutes {
      *                   type: string
      *                   example: "User signed out successfully. Refresh tokens revoked."
      *       401:
-     *         $ref: '#/components/responses/Unauthorized'
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Unauthorized"
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
     this.router.post("/signout", verifyAuth, this.authController.signout);
 
@@ -505,7 +679,18 @@ export class AuthRoutes {
      *       400:
      *         description: Email is required
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
     this.router.post("/resetPassword", this.authController.resetPassword);
 
@@ -551,7 +736,18 @@ export class AuthRoutes {
      *       400:
      *         description: Email is required
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
     this.router.post("/sendVerification", this.authController.sendVerification);
 
@@ -596,9 +792,31 @@ export class AuthRoutes {
      *       400:
      *         description: Provider is required
      *       401:
-     *         $ref: '#/components/responses/Unauthorized'
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Unauthorized"
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
     this.router.post("/linkProvider", verifyAuth, this.authController.linkProvider);
 
@@ -641,9 +859,31 @@ export class AuthRoutes {
      *       400:
      *         description: Provider is required
      *       401:
-     *         $ref: '#/components/responses/Unauthorized'
+     *         description: Unauthorized
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Unauthorized"
      *       500:
-     *         $ref: '#/components/responses/ServerError'
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: "Internal server error"
      */
     this.router.post("/unlinkProvider", verifyAuth, this.authController.unlinkProvider);
   }

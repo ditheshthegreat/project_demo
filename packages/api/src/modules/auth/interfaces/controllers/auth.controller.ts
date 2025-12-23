@@ -21,6 +21,10 @@ import axios from "axios";
 import { firebaseAuth } from "../../../../shared/infra/firebase/firebaseClient";
 import { prisma } from "../../../../shared/infra/prisma/prismaClient";
 import { s3Service } from "../../../../shared/infra/storage/s3.service";
+import { PushTokenRepositoryImpl } from "../../../notifications/infrastructure/database/pushToken.repository.impl";
+import { RegisterPushTokenUseCase } from "../../../notifications/application/usecases/registerPushToken.usecase";
+import { RemovePushTokenUseCase } from "../../../notifications/application/usecases/removePushToken.usecase";
+import { DeviceType } from "../../../notifications/domain/entities/pushToken.entity";
 
 export class AuthController {
   constructor(
@@ -37,8 +41,9 @@ export class AuthController {
   ) {}
 
   /**
-   * GET /auth/verify
+   * POST /auth/verify
    * Verify Firebase token and sync user profile
+   * Optionally register FCM push token
    */
   verify = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -55,6 +60,25 @@ export class AuthController {
         email: req.user.email,
         name: req.user.name,
       });
+
+      // Optionally register FCM push token if provided
+      const { fcmToken, deviceType, deviceId } = req.body || {};
+      if (fcmToken && deviceType) {
+        try {
+          const pushTokenRepository = new PushTokenRepositoryImpl();
+          const registerPushTokenUseCase = new RegisterPushTokenUseCase(pushTokenRepository);
+          
+          await registerPushTokenUseCase.execute({
+            userId: user.id,
+            token: fcmToken,
+            deviceType: deviceType as DeviceType,
+            deviceId,
+          });
+        } catch (error) {
+          // Log error but don't fail the verify request
+          console.error('Failed to register push token:', error);
+        }
+      }
 
       const userJson = user.toJSON();
       
@@ -345,6 +369,7 @@ export class AuthController {
   /**
    * POST /auth/signout
    * Sign out user and revoke refresh tokens
+   * Optionally remove device-specific FCM token
    */
   signout = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -354,6 +379,27 @@ export class AuthController {
           message: "Unauthorized - Firebase user data not found",
         });
         return;
+      }
+
+      const { fcmToken } = req.body || {};
+
+      // Remove device-specific FCM token if provided
+      if (fcmToken) {
+        try {
+          const user = await this.getUserUseCase.execute({
+            firebaseUid: req.user.uid,
+          });
+
+          const pushTokenRepository = new PushTokenRepositoryImpl();
+          const removePushTokenUseCase = new RemovePushTokenUseCase(pushTokenRepository);
+          
+          await removePushTokenUseCase.execute({
+            token: fcmToken,
+            userId: user.id,
+          });
+        } catch (error) {
+          console.error('Failed to remove push token on signout:', error);
+        }
       }
 
       const { firebaseAuth } = await import("../../../../shared/infra/firebase/firebaseClient");

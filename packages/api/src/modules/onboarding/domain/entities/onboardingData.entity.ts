@@ -16,6 +16,8 @@ export interface OnboardingData {
   // Step 2: Location
   city?: string;
   federalState?: string;
+  latitude?: number;
+  longitude?: number;
   allowLocation: boolean;
   
   // Step 3: Interests
