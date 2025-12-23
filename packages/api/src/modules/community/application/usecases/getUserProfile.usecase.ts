@@ -9,6 +9,7 @@ import { IUserProfileRepository } from '../../domain/repositories/IUserProfileRe
 import { IPostRepository } from '../../domain/repositories/IPostRepository';
 import { IFriendRepository } from '../../domain/repositories/IFriendRepository';
 import { NotFoundException, ForbiddenException } from '../../../../shared/core/exceptions/AppException';
+import { prisma } from '../../../../shared/infra/prisma/prismaClient';
 
 export interface UserProfileData {
   id: string;
@@ -37,19 +38,39 @@ export class GetUserProfileUseCase {
     private readonly friendRepository: IFriendRepository
   ) {}
 
-  async execute(userId: string, currentUserId: string): Promise<UserProfileData> {
-    // Get user profile
-    const users = await this.userProfileRepository.explore(currentUserId, {});
-    const user = users.find(u => u.firebaseUid === userId);
+  async execute(targetUserId: string, currentUserId: string): Promise<UserProfileData> {
+    // Get user profile by database ID (path parameter)
+    const user = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: {
+        id: true,
+        firebaseUid: true,
+        name: true,
+        email: true,
+        profileImage: true,
+        gender: true,
+        city: true,
+        federalState: true,
+        interests: true,
+        hobbies: true,
+        accessibilityRequirements: true,
+        description: true,
+        onboardingCompleted: true,
+        publicProfile: true,
+        isDeleted: true,
+      },
+    });
 
-    if (!user) {
+    if (!user || user.isDeleted) {
       throw new NotFoundException('User not found', 'USER_NOT_FOUND');
     }
 
     // Check privacy settings
-    if (!user.onboardingCompleted) {
+    if (!user.onboardingCompleted || !user.publicProfile) {
       throw new ForbiddenException('Profile not available', 'PROFILE_NOT_AVAILABLE');
     }
+
+    const userId = user.id;
 
     // Get posts count
     const userPosts = await this.postRepository.findByUserId(userId);

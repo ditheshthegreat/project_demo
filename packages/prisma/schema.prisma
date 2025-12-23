@@ -172,15 +172,16 @@ model FeedLike {
 }
 
 model FriendRequest {
-  id         String   @id @default(uuid())
-  senderId   String   // User who sent the friend request
-  sender     User     @relation("FriendRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
-  receiverId String   // User who received the friend request
-  receiver   User     @relation("FriendRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-  status     String   @default("pending") // pending, accepted, rejected
+  id         String    @id @default(uuid())
+  senderId   String    // User who sent the friend request
+  sender     User      @relation("FriendRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String    // User who received the friend request
+  receiver   User      @relation("FriendRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  status     String    @default("pending") // pending, accepted, rejected
   
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime? // Soft delete timestamp
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   
   @@unique([senderId, receiverId]) // One request per user pair
   @@index([senderId])
@@ -198,6 +199,7 @@ model Friendship {
   status     String    @default("pending") // pending, accepted, rejected, blocked
   acceptedAt DateTime? // When friendship was accepted
   
+  deletedAt  DateTime? // Soft delete timestamp
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   

@@ -5,7 +5,7 @@
  * @description Feed Controller - HTTP handlers for feed operations
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { CreatePostUseCase } from '../../application/usecases/createPost.usecase';
 import { GetFeedUseCase } from '../../application/usecases/getFeed.usecase';
 import { GetPostByIdUseCase } from '../../application/usecases/getPostById.usecase';
@@ -15,10 +15,12 @@ import { RemoveLikeUseCase } from '../../application/usecases/removeLike.usecase
 import { AddCommentUseCase } from '../../application/usecases/addComment.usecase';
 import { GetCommentsUseCase } from '../../application/usecases/getComments.usecase';
 import { DeleteCommentUseCase } from '../../application/usecases/deleteComment.usecase';
+import { UpdateCommentUseCase } from '../../application/usecases/updateComment.usecase';
 import { GetFeedSettingsUseCase } from '../../application/usecases/getFeedSettings.usecase';
 import { UpdateFeedSettingsUseCase } from '../../application/usecases/updateFeedSettings.usecase';
 import { CreatePostDtoSchema } from '../dto/createPost.dto';
 import { CreateCommentDtoSchema } from '../dto/createComment.dto';
+import { UpdateCommentDtoSchema } from '../dto/updateComment.dto';
 import { UpdateFeedSettingsDtoSchema } from '../dto/updateFeedSettings.dto';
 import { AuthRequest } from '../../../../shared/middleware/verifyAuth.middleware';
 import { s3Service } from '../../../../shared/infra/storage/s3.service';
@@ -35,15 +37,27 @@ export class FeedController {
     private readonly addCommentUseCase: AddCommentUseCase,
     private readonly getCommentsUseCase: GetCommentsUseCase,
     private readonly deleteCommentUseCase: DeleteCommentUseCase,
+    private readonly updateCommentUseCase: UpdateCommentUseCase,
     private readonly getFeedSettingsUseCase: GetFeedSettingsUseCase,
     private readonly updateFeedSettingsUseCase: UpdateFeedSettingsUseCase
   ) {}
 
   /**
+   * Helper method to get database user ID from Firebase UID
+   */
+  private async getUserIdFromFirebaseUid(firebaseUid: string): Promise<string | null> {
+    const user = await prisma.user.findUnique({
+      where: { firebaseUid },
+      select: { id: true }
+    });
+    return user?.id || null;
+  }
+
+  /**
    * Create a new feed post
    * POST /community/feed
    */
-  async createPost(req: AuthRequest, res: Response): Promise<void> {
+  async createPost(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const firebaseUid = req.user?.uid;
       if (!firebaseUid) {
@@ -124,7 +138,7 @@ export class FeedController {
         });
         return;
       }
-      throw error;
+      next(error);
     }
   }
 
@@ -132,13 +146,22 @@ export class FeedController {
    * Get feed posts
    * GET /community/feed
    */
-  async getFeed(req: AuthRequest, res: Response): Promise<void> {
+  async getFeed(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -158,7 +181,7 @@ export class FeedController {
         data: posts.map(post => post.toJSON()),
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 
@@ -166,13 +189,22 @@ export class FeedController {
    * Get single post by ID
    * GET /community/feed/:postId
    */
-  async getPostById(req: AuthRequest, res: Response): Promise<void> {
+  async getPostById(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -187,7 +219,7 @@ export class FeedController {
         data: post.toJSON(),
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 
@@ -195,10 +227,10 @@ export class FeedController {
    * Delete a post
    * DELETE /community/feed/:postId
    */
-  async deletePost(req: AuthRequest, res: Response): Promise<void> {
+  async deletePost(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
@@ -206,16 +238,30 @@ export class FeedController {
         return;
       }
 
+      // Get database user ID from Firebase UID
+      const user = await prisma.user.findUnique({
+        where: { firebaseUid },
+        select: { id: true }
+      });
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
       const { postId } = req.params;
 
-      await this.deletePostUseCase.execute(postId, userId);
+      await this.deletePostUseCase.execute(postId, user.id);
 
       res.status(200).json({
         success: true,
         message: 'Post deleted successfully',
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 
@@ -223,13 +269,22 @@ export class FeedController {
    * Add like to a post
    * POST /community/feed/:postId/like
    */
-  async addLike(req: AuthRequest, res: Response): Promise<void> {
+  async addLike(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -244,7 +299,7 @@ export class FeedController {
         data: like.toJSON(),
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 
@@ -252,13 +307,22 @@ export class FeedController {
    * Remove like from a post
    * DELETE /community/feed/:postId/like
    */
-  async removeLike(req: AuthRequest, res: Response): Promise<void> {
+  async removeLike(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -272,7 +336,7 @@ export class FeedController {
         message: 'Like removed successfully',
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 
@@ -280,13 +344,22 @@ export class FeedController {
    * Add comment to a post
    * POST /community/feed/:postId/comment
    */
-  async addComment(req: AuthRequest, res: Response): Promise<void> {
+  async addComment(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -314,7 +387,7 @@ export class FeedController {
         });
         return;
       }
-      throw error;
+      next(error);
     }
   }
 
@@ -322,10 +395,10 @@ export class FeedController {
    * Get comments for a post
    * GET /community/feed/:postId/comments
    */
-  async getComments(req: AuthRequest, res: Response): Promise<void> {
+  async getComments(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
@@ -349,7 +422,58 @@ export class FeedController {
         data: comments.map(comment => comment.toJSON()),
       });
     } catch (error) {
-      throw error;
+      next(error);
+    }
+  }
+
+  /**
+   * Update a comment
+   * PUT /community/comment/:commentId
+   */
+  async updateComment(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
+        res.status(401).json({
+          success: false,
+          message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      const { commentId } = req.params;
+      const validated = UpdateCommentDtoSchema.parse(req.body);
+
+      const comment = await this.updateCommentUseCase.execute({
+        commentId,
+        userId,
+        content: validated.content,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Comment updated successfully',
+        data: comment.toJSON(),
+      });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: error.errors,
+        });
+        return;
+      }
+      next(error);
     }
   }
 
@@ -357,13 +481,22 @@ export class FeedController {
    * Delete a comment
    * DELETE /community/comment/:commentId
    */
-  async deleteComment(req: AuthRequest, res: Response): Promise<void> {
+  async deleteComment(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -377,7 +510,7 @@ export class FeedController {
         message: 'Comment deleted successfully',
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 
@@ -385,13 +518,22 @@ export class FeedController {
    * Get feed settings
    * GET /community/feed/settings
    */
-  async getFeedSettings(req: AuthRequest, res: Response): Promise<void> {
+  async getFeedSettings(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -404,7 +546,7 @@ export class FeedController {
         data: settings.toJSON(),
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 
@@ -412,13 +554,22 @@ export class FeedController {
    * Update feed settings
    * PUT /community/feed/settings
    */
-  async updateFeedSettings(req: AuthRequest, res: Response): Promise<void> {
+  async updateFeedSettings(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -444,7 +595,7 @@ export class FeedController {
         });
         return;
       }
-      throw error;
+      next(error);
     }
   }
 }

@@ -33,3 +33,12 @@ export const uploadImages = multer({
     files: 5 // Maximum 5 files
   }
 }).array('images', 5);
+
+export const uploadProfileImage = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB per file
+    files: 1 // Single file
+  }
+}).single('profileImage');

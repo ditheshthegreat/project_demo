@@ -27,20 +27,20 @@ export interface S3Config {
  * @example Local MinIO:
  * S3_ENDPOINT=http://localhost:9000
  * S3_REGION=us-east-1
- * S3_BUCKET=inklusio-uploads
+ * S3_BUCKET=inklusio
  * S3_ACCESS_KEY=minioadmin
  * S3_SECRET_KEY=minioadmin
  * S3_FORCE_PATH_STYLE=true
- * S3_PUBLIC_URL=http://localhost:9000/inklusio-uploads
+ * S3_PUBLIC_URL=http://localhost:9000/inklusio
  * 
  * @example DigitalOcean Spaces:
  * S3_ENDPOINT=https://nyc3.digitaloceanspaces.com
  * S3_REGION=nyc3
- * S3_BUCKET=inklusio-uploads
+ * S3_BUCKET=inklusio
  * S3_ACCESS_KEY=your_spaces_key
  * S3_SECRET_KEY=your_spaces_secret
  * S3_FORCE_PATH_STYLE=false
- * S3_PUBLIC_URL=https://inklusio-uploads.nyc3.cdn.digitaloceanspaces.com
+ * S3_PUBLIC_URL=https://inklusio.nyc3.cdn.digitaloceanspaces.com
  */
 export function getS3Config(): S3Config {
   const endpoint = process.env.S3_ENDPOINT;

@@ -5,15 +5,18 @@
  * @description Friend Controller - HTTP handlers for friend operations
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { SendFriendRequestUseCase } from '../../application/usecases/sendFriendRequest.usecase';
 import { GetPendingRequestsUseCase } from '../../application/usecases/getPendingRequests.usecase';
 import { AcceptFriendRequestUseCase } from '../../application/usecases/acceptFriendRequest.usecase';
 import { RejectFriendRequestUseCase } from '../../application/usecases/rejectFriendRequest.usecase';
 import { GetFriendsUseCase } from '../../application/usecases/getFriends.usecase';
 import { RemoveFriendUseCase } from '../../application/usecases/removeFriend.usecase';
+import { CancelFriendRequestUseCase } from '../../application/usecases/cancelFriendRequest.usecase';
 import { SendFriendRequestDtoSchema, HandleFriendRequestDtoSchema } from '../dto/friendRequest.dto';
 import { AuthRequest } from '../../../../shared/middleware/verifyAuth.middleware';
+import { prisma } from '../../../../shared/infra/prisma/prismaClient';
+import { s3Service } from '../../../../shared/infra/storage/s3.service';
 
 export class FriendController {
   constructor(
@@ -22,20 +25,41 @@ export class FriendController {
     private readonly acceptFriendRequestUseCase: AcceptFriendRequestUseCase,
     private readonly rejectFriendRequestUseCase: RejectFriendRequestUseCase,
     private readonly getFriendsUseCase: GetFriendsUseCase,
-    private readonly removeFriendUseCase: RemoveFriendUseCase
+    private readonly removeFriendUseCase: RemoveFriendUseCase,
+    private readonly cancelFriendRequestUseCase: CancelFriendRequestUseCase
   ) {}
+
+  /**
+   * Helper method to get database user ID from Firebase UID
+   */
+  private async getUserIdFromFirebaseUid(firebaseUid: string): Promise<string | null> {
+    const user = await prisma.user.findUnique({
+      where: { firebaseUid },
+      select: { id: true }
+    });
+    return user?.id || null;
+  }
 
   /**
    * Send friend request
    * POST /community/friend/request
    */
-  async sendRequest(req: AuthRequest, res: Response): Promise<void> {
+  async sendRequest(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -58,7 +82,7 @@ export class FriendController {
         });
         return;
       }
-      throw error;
+      next(error);
     }
   }
 
@@ -66,13 +90,22 @@ export class FriendController {
    * Get pending friend requests
    * GET /community/friend/requests
    */
-  async getPendingRequests(req: AuthRequest, res: Response): Promise<void> {
+  async getPendingRequests(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -85,7 +118,7 @@ export class FriendController {
         data: requests.map(req => req.toJSON()),
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 
@@ -93,13 +126,22 @@ export class FriendController {
    * Accept friend request
    * POST /community/friend/accept
    */
-  async acceptRequest(req: AuthRequest, res: Response): Promise<void> {
+  async acceptRequest(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -122,7 +164,7 @@ export class FriendController {
         });
         return;
       }
-      throw error;
+      next(error);
     }
   }
 
@@ -130,13 +172,22 @@ export class FriendController {
    * Reject friend request
    * POST /community/friend/reject
    */
-  async rejectRequest(req: AuthRequest, res: Response): Promise<void> {
+  async rejectRequest(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -158,18 +209,18 @@ export class FriendController {
         });
         return;
       }
-      throw error;
+      next(error);
     }
   }
 
   /**
-   * Get friends list
+   * Get friends list with user profiles
    * GET /community/friends
    */
-  async getFriends(req: AuthRequest, res: Response): Promise<void> {
+  async getFriends(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
@@ -177,15 +228,107 @@ export class FriendController {
         return;
       }
 
-      const friends = await this.getFriendsUseCase.execute(userId);
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      const friendships = await this.getFriendsUseCase.execute(userId);
+
+      // Fetch friend user profiles
+      const friendProfiles = await Promise.all(
+        friendships.map(async (friendship) => {
+          const friendUser = await prisma.user.findUnique({
+            where: { id: friendship.friendId },
+            select: {
+              id: true,
+              firebaseUid: true,
+              name: true,
+              email: true,
+              phone: true,
+              profileImage: true,
+              age: true,
+              gender: true,
+              location: true,
+              description: true,
+              interests: true,
+              hobbies: true,
+              createdAt: true,
+            },
+          });
+
+          if (!friendUser) return null;
+
+          // Generate signed URL for profile image
+          let profileImageUrl = friendUser.profileImage;
+          if (profileImageUrl) {
+            try {
+              profileImageUrl = await s3Service.getSignedUrl(profileImageUrl);
+            } catch (error) {
+              profileImageUrl = null;
+            }
+          }
+
+          return {
+            ...friendUser,
+            profileImage: profileImageUrl,
+            friendshipId: friendship.id,
+            friendsSince: friendship.acceptedAt,
+          };
+        })
+      );
+
+      // Filter out null entries (deleted users)
+      const validFriendProfiles = friendProfiles.filter(profile => profile !== null);
 
       res.status(200).json({
         success: true,
         message: 'Friends retrieved successfully',
-        data: friends.map(friend => friend.toJSON()),
+        data: validFriendProfiles,
       });
     } catch (error) {
-      throw error;
+      next(error);
+    }
+  }
+
+  /**
+   * Cancel friend request
+   * DELETE /community/friend/request/:requestId
+   */
+  async cancelFriendRequest(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
+        res.status(401).json({
+          success: false,
+          message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      const { requestId } = req.params;
+
+      await this.cancelFriendRequestUseCase.execute(userId, requestId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Friend request cancelled successfully',
+      });
+    } catch (error) {
+      next(error);
     }
   }
 
@@ -193,13 +336,22 @@ export class FriendController {
    * Remove friend
    * DELETE /community/friend/remove/:userId
    */
-  async removeFriend(req: AuthRequest, res: Response): Promise<void> {
+  async removeFriend(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -213,7 +365,7 @@ export class FriendController {
         message: 'Friend removed successfully',
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 }

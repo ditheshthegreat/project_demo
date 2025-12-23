@@ -115,7 +115,7 @@ export class FeedRoutes {
       '/',
       verifyAuth,
       uploadImages as any,
-      (req, res) => this.feedController.createPost(req, res)
+      (req, res, next) => this.feedController.createPost(req, res, next)
     );
 
     /**
@@ -195,7 +195,7 @@ export class FeedRoutes {
     this.router.get(
       '/',
       verifyAuth,
-      (req, res) => this.feedController.getFeed(req, res)
+      (req, res, next) => this.feedController.getFeed(req, res, next)
     );
 
     /**
@@ -267,7 +267,7 @@ export class FeedRoutes {
     this.router.get(
       '/:postId',
       verifyAuth,
-      (req, res) => this.feedController.getPostById(req, res)
+      (req, res, next) => this.feedController.getPostById(req, res, next)
     );
 
     /**
@@ -311,7 +311,7 @@ export class FeedRoutes {
     this.router.delete(
       '/:postId',
       verifyAuth,
-      (req, res) => this.feedController.deletePost(req, res)
+      (req, res, next) => this.feedController.deletePost(req, res, next)
     );
 
     /**
@@ -370,7 +370,7 @@ export class FeedRoutes {
     this.router.post(
       '/:postId/like',
       verifyAuth,
-      (req, res) => this.feedController.addLike(req, res)
+      (req, res, next) => this.feedController.addLike(req, res, next)
     );
 
     /**
@@ -412,7 +412,7 @@ export class FeedRoutes {
     this.router.delete(
       '/:postId/like',
       verifyAuth,
-      (req, res) => this.feedController.removeLike(req, res)
+      (req, res, next) => this.feedController.removeLike(req, res, next)
     );
 
     /**
@@ -494,7 +494,7 @@ export class FeedRoutes {
     this.router.post(
       '/:postId/comment',
       verifyAuth,
-      (req, res) => this.feedController.addComment(req, res)
+      (req, res, next) => this.feedController.addComment(req, res, next)
     );
 
     /**
@@ -573,7 +573,7 @@ export class FeedRoutes {
     this.router.get(
       '/:postId/comments',
       verifyAuth,
-      (req, res) => this.feedController.getComments(req, res)
+      (req, res, next) => this.feedController.getComments(req, res, next)
     );
 
     /**
@@ -630,7 +630,7 @@ export class FeedRoutes {
     this.router.get(
       '/settings',
       verifyAuth,
-      (req, res) => this.feedController.getFeedSettings(req, res)
+      (req, res, next) => this.feedController.getFeedSettings(req, res, next)
     );
 
     /**
@@ -735,7 +735,7 @@ export class FeedRoutes {
     this.router.put(
       '/settings',
       verifyAuth,
-      (req, res) => this.feedController.updateFeedSettings(req, res)
+      (req, res, next) => this.feedController.updateFeedSettings(req, res, next)
     );
   }
 

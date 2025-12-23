@@ -11,8 +11,32 @@ import { prisma } from '../../../../shared/infra/prisma/prismaClient';
 
 export class FriendRepositoryImpl implements IFriendRepository {
   async findById(id: string): Promise<Friend | null> {
-    const friendship = await prisma.friendship.findUnique({
-      where: { id },
+    // Check FriendRequest table first (pending requests)
+    const request = await prisma.friendRequest.findFirst({
+      where: { 
+        id,
+        deletedAt: null,
+      },
+    });
+
+    if (request) {
+      return Friend.create({
+        id: request.id,
+        userId: request.senderId,
+        friendId: request.receiverId,
+        status: request.status as any,
+        acceptedAt: null,
+        createdAt: request.createdAt,
+        updatedAt: request.updatedAt,
+      });
+    }
+
+    // Check Friendship table (accepted friendships)
+    const friendship = await prisma.friendship.findFirst({
+      where: { 
+        id,
+        deletedAt: null,
+      },
     });
 
     if (!friendship) {
@@ -38,6 +62,7 @@ export class FriendRepositoryImpl implements IFriendRepository {
           { userId: userId1, friendId: userId2 },
           { userId: userId2, friendId: userId1 },
         ],
+        deletedAt: null,
       },
     });
 
@@ -61,6 +86,7 @@ export class FriendRepositoryImpl implements IFriendRepository {
           { senderId: userId2, receiverId: userId1 },
         ],
         status: 'pending',
+        deletedAt: null,
       },
     });
 
@@ -82,11 +108,9 @@ export class FriendRepositoryImpl implements IFriendRepository {
   async findFriendsByUserId(userId: string, limit?: number, offset?: number): Promise<Friend[]> {
     const friendships = await prisma.friendship.findMany({
       where: {
-        OR: [
-          { userId },
-          { friendId: userId },
-        ],
+        userId,
         status: 'accepted',
+        deletedAt: null,
       },
       orderBy: { acceptedAt: 'desc' },
       take: limit,
@@ -109,6 +133,7 @@ export class FriendRepositoryImpl implements IFriendRepository {
       where: {
         receiverId: userId,
         status: 'pending',
+        deletedAt: null,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -129,6 +154,7 @@ export class FriendRepositoryImpl implements IFriendRepository {
       where: {
         senderId: userId,
         status: 'pending',
+        deletedAt: null,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -152,6 +178,7 @@ export class FriendRepositoryImpl implements IFriendRepository {
           { friendId: userId },
         ],
         status,
+        deletedAt: null,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -175,6 +202,7 @@ export class FriendRepositoryImpl implements IFriendRepository {
           { friendId: userId },
         ],
         status: 'accepted',
+        deletedAt: null,
       },
     });
   }
@@ -187,6 +215,7 @@ export class FriendRepositoryImpl implements IFriendRepository {
           { userId: userId2, friendId: userId1 },
         ],
         status: 'accepted',
+        deletedAt: null,
       },
     });
 
@@ -200,6 +229,7 @@ export class FriendRepositoryImpl implements IFriendRepository {
           { userId: userId1, friendId: userId2 },
           { userId: userId2, friendId: userId1 },
         ],
+        deletedAt: null,
       },
     });
 
@@ -209,14 +239,24 @@ export class FriendRepositoryImpl implements IFriendRepository {
           { senderId: userId1, receiverId: userId2 },
           { senderId: userId2, receiverId: userId1 },
         ],
+        deletedAt: null,
       },
     });
 
     return friendship !== null || request !== null;
   }
 
-
   async create(friend: Friend): Promise<Friend> {
+    // Delete any existing friend request between these users (handles stale rejected/cancelled requests)
+    await prisma.friendRequest.deleteMany({
+      where: {
+        OR: [
+          { senderId: friend.userId, receiverId: friend.friendId },
+          { senderId: friend.friendId, receiverId: friend.userId },
+        ],
+      },
+    });
+
     const request = await prisma.friendRequest.create({
       data: {
         id: friend.id,
@@ -241,18 +281,15 @@ export class FriendRepositoryImpl implements IFriendRepository {
 
   async updateStatus(id: string, status: any, acceptedAt?: Date): Promise<Friend> {
     // Check if it's a friend request
-    const request = await prisma.friendRequest.findUnique({
-      where: { id },
+    const request = await prisma.friendRequest.findFirst({
+      where: { 
+        id,
+        deletedAt: null,
+      },
     });
 
     if (request) {
-      // Update request status
-      await prisma.friendRequest.update({
-        where: { id },
-        data: { status },
-      });
-
-      // If accepting, create mutual friendship records
+      // If accepting, create mutual friendship records and soft delete with status preserved
       if (status === 'accepted') {
         const acceptedTime = acceptedAt || new Date();
         
@@ -274,6 +311,15 @@ export class FriendRepositoryImpl implements IFriendRepository {
           },
         });
 
+        // Update status to accepted and soft delete to preserve the final state
+        await prisma.friendRequest.update({
+          where: { id },
+          data: { 
+            status: 'accepted',
+            deletedAt: new Date(),
+          },
+        });
+
         return Friend.create({
           id: request.id,
           userId: request.senderId,
@@ -284,6 +330,33 @@ export class FriendRepositoryImpl implements IFriendRepository {
           updatedAt: new Date(),
         });
       }
+
+      // For reject, update status and soft delete to preserve the final state
+      if (status === 'rejected') {
+        await prisma.friendRequest.update({
+          where: { id },
+          data: { 
+            status: 'rejected',
+            deletedAt: new Date(),
+          },
+        });
+
+        return Friend.create({
+          id: request.id,
+          userId: request.senderId,
+          friendId: request.receiverId,
+          status: 'rejected',
+          acceptedAt: null,
+          createdAt: request.createdAt,
+          updatedAt: new Date(),
+        });
+      }
+
+      // For other status updates
+      await prisma.friendRequest.update({
+        where: { id },
+        data: { status },
+      });
 
       return Friend.create({
         id: request.id,
@@ -297,8 +370,11 @@ export class FriendRepositoryImpl implements IFriendRepository {
     }
 
     // Check if it's a friendship
-    const friendship = await prisma.friendship.findUnique({
-      where: { id },
+    const friendship = await prisma.friendship.findFirst({
+      where: { 
+        id,
+        deletedAt: null,
+      },
     });
 
     if (!friendship) {
@@ -322,21 +398,43 @@ export class FriendRepositoryImpl implements IFriendRepository {
   }
 
   async deleteByUsers(userId1: string, userId2: string): Promise<void> {
-    // Soft delete both friendship directions
+    // Soft delete friendship records - status is already preserved (accepted/blocked)
+    // Just set deletedAt to mark as removed while keeping the final state
     await prisma.friendship.updateMany({
       where: {
         OR: [
           { userId: userId1, friendId: userId2 },
           { userId: userId2, friendId: userId1 },
         ],
+        deletedAt: null,
       },
-      data: { status: 'removed' },
+      data: { deletedAt: new Date() },
+    });
+
+    // Soft delete friend request records - status is already preserved if any exist
+    await prisma.friendRequest.updateMany({
+      where: {
+        OR: [
+          { senderId: userId1, receiverId: userId2 },
+          { senderId: userId2, receiverId: userId1 },
+        ],
+        deletedAt: null,
+      },
+      data: { deletedAt: new Date() },
     });
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.friendRequest.delete({
-      where: { id },
+    // Soft delete from friend requests
+    await prisma.friendRequest.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+
+    // Soft delete from friendships
+    await prisma.friendship.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
     });
   }
 }

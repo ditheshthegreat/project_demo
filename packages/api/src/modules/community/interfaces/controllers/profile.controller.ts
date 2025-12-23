@@ -5,10 +5,11 @@
  * @description Profile Controller - HTTP handlers for user profile operations
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { GetUserProfileUseCase } from '../../application/usecases/getUserProfile.usecase';
 import { GetMyProfileUseCase } from '../../application/usecases/getMyProfile.usecase';
 import { AuthRequest } from '../../../../shared/middleware/verifyAuth.middleware';
+import { prisma } from '../../../../shared/infra/prisma/prismaClient';
 
 export class ProfileController {
   constructor(
@@ -17,16 +18,36 @@ export class ProfileController {
   ) {}
 
   /**
+   * Helper method to get database user ID from Firebase UID
+   */
+  private async getUserIdFromFirebaseUid(firebaseUid: string): Promise<string | null> {
+    const user = await prisma.user.findUnique({
+      where: { firebaseUid },
+      select: { id: true }
+    });
+    return user?.id || null;
+  }
+
+  /**
    * Get user profile by ID
    * GET /community/profile/:userId
    */
-  async getUserProfile(req: AuthRequest, res: Response): Promise<void> {
+  async getUserProfile(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const currentUserId = req.user?.uid;
-      if (!currentUserId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const currentUserId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!currentUserId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -41,7 +62,7 @@ export class ProfileController {
         data: profile,
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 
@@ -49,13 +70,22 @@ export class ProfileController {
    * Get current user's own profile
    * GET /community/profile/me
    */
-  async getMyProfile(req: AuthRequest, res: Response): Promise<void> {
+  async getMyProfile(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = req.user?.uid;
-      if (!userId) {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
         res.status(401).json({
           success: false,
           message: 'Unauthorized',
+        });
+        return;
+      }
+
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
         });
         return;
       }
@@ -68,7 +98,7 @@ export class ProfileController {
         data: profile,
       });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 }

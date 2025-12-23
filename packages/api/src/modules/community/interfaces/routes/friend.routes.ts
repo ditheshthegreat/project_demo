@@ -87,7 +87,52 @@ export class FriendRoutes {
     this.router.post(
       '/request',
       verifyAuth,
-      (req, res) => this.friendController.sendRequest(req, res)
+      (req, res, next) => this.friendController.sendRequest(req, res, next)
+    );
+
+    /**
+     * @swagger
+     * /api/community/friend/request/{requestId}:
+     *   delete:
+     *     summary: Cancel friend request
+     *     description: Cancel a pending friend request that you sent
+     *     tags: [Community]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: requestId
+     *         required: true
+     *         schema:
+     *           type: string
+     *           format: uuid
+     *         description: Friend request ID to cancel
+     *         example: "76e27084-d144-4886-9834-2693b43923dd"
+     *     responses:
+     *       200:
+     *         description: Friend request cancelled successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: "Friend request cancelled successfully"
+     *       401:
+     *         description: Unauthorized
+     *       403:
+     *         description: Cannot cancel - not your request or invalid status
+     *       404:
+     *         description: Friend request not found
+     */
+    this.router.delete(
+      '/request/:requestId',
+      verifyAuth,
+      (req, res, next) => this.friendController.cancelFriendRequest(req, res, next)
     );
 
     /**
@@ -139,7 +184,7 @@ export class FriendRoutes {
     this.router.get(
       '/requests',
       verifyAuth,
-      (req, res) => this.friendController.getPendingRequests(req, res)
+      (req, res, next) => this.friendController.getPendingRequests(req, res, next)
     );
 
     /**
@@ -213,7 +258,7 @@ export class FriendRoutes {
     this.router.post(
       '/accept',
       verifyAuth,
-      (req, res) => this.friendController.acceptRequest(req, res)
+      (req, res, next) => this.friendController.acceptRequest(req, res, next)
     );
 
     /**
@@ -269,7 +314,7 @@ export class FriendRoutes {
     this.router.post(
       '/reject',
       verifyAuth,
-      (req, res) => this.friendController.rejectRequest(req, res)
+      (req, res, next) => this.friendController.rejectRequest(req, res, next)
     );
 
     /**
@@ -324,7 +369,7 @@ export class FriendRoutes {
     this.router.get(
       '/',
       verifyAuth,
-      (req, res) => this.friendController.getFriends(req, res)
+      (req, res, next) => this.friendController.getFriends(req, res, next)
     );
 
     /**
@@ -366,7 +411,7 @@ export class FriendRoutes {
     this.router.delete(
       '/remove/:userId',
       verifyAuth,
-      (req, res) => this.friendController.removeFriend(req, res)
+      (req, res, next) => this.friendController.removeFriend(req, res, next)
     );
   }
 

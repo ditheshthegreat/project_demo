@@ -7,6 +7,7 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
 import { verifyAuth } from "../../../../shared/middleware/verifyAuth.middleware";
+import { uploadProfileImage } from "../../../../shared/middleware/upload.middleware";
 
 export class AuthRoutes {
   public router: Router;
@@ -90,6 +91,78 @@ export class AuthRoutes {
 
     /**
      * @swagger
+     * /api/auth/dev/signup:
+     *   post:
+     *     summary: Development signup - Create Firebase user
+     *     description: |
+     *       **DEVELOPMENT ONLY** - Creates a new Firebase user and returns ID token.
+     *       Disabled in production. Use the returned idToken as Bearer token.
+     *     tags: [Auth]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - email
+     *               - password
+     *             properties:
+     *               email:
+     *                 type: string
+     *                 format: email
+     *                 example: newuser@example.com
+     *               password:
+     *                 type: string
+     *                 format: password
+     *                 minLength: 6
+     *                 example: Test@123
+     *               name:
+     *                 type: string
+     *                 example: Test User
+     *     responses:
+     *       201:
+     *         description: User created successfully - Copy the idToken
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     firebaseUid:
+     *                       type: string
+     *                     email:
+     *                       type: string
+     *                     name:
+     *                       type: string
+     *                     idToken:
+     *                       type: string
+     *                       description: Use this as Bearer token
+     *                       example: eyJhbGciOiJSUzI1NiIsImtpZCI6Ijk4OGQ1...
+     *                     refreshToken:
+     *                       type: string
+     *                     expiresIn:
+     *                       type: string
+     *                       example: "3600"
+     *                 message:
+     *                   type: string
+     *                   example: User created successfully - use idToken as Bearer token
+     *       400:
+     *         description: Missing email/password or weak password
+     *       409:
+     *         description: Email already exists
+     *       403:
+     *         description: Endpoint disabled in production
+     */
+    this.router.post("/dev/signup", this.authController.devSignup);
+
+    /**
+     * @swagger
      * /api/auth/dev/login:
      *   post:
      *     summary: Development login - Get Firebase token
@@ -158,15 +231,15 @@ export class AuthRoutes {
      * @swagger
      * /api/auth/me:
      *   put:
-     *     summary: Update user profile
-     *     description: Updates the authenticated user's profile information
+     *     summary: Update user profile with optional image upload
+     *     description: Updates the authenticated user's profile information. Profile image is uploaded to S3 and returned as a signed URL.
      *     tags: [Auth]
      *     security:
      *       - bearerAuth: []
      *     requestBody:
      *       required: true
      *       content:
-     *         application/json:
+     *         multipart/form-data:
      *           schema:
      *             type: object
      *             properties:
@@ -184,33 +257,23 @@ export class AuthRoutes {
      *                 example: "male"
      *               profileImage:
      *                 type: string
-     *                 example: "https://example.com/profile.jpg"
+     *                 format: binary
+     *                 description: Profile image file (JPEG, PNG, or WebP, max 5MB)
      *               location:
-     *                 type: object
-     *                 properties:
-     *                   city:
-     *                     type: string
-     *                   state:
-     *                     type: string
-     *                   country:
-     *                     type: string
+     *                 type: string
+     *                 example: '{"city":"New York","state":"NY","country":"USA"}'
+     *                 description: Location data as JSON string
      *               accessibility:
-     *                 type: object
-     *                 properties:
-     *                   screenReader:
-     *                     type: boolean
-     *                   fontSize:
-     *                     type: string
+     *                 type: string
+     *                 example: '{"screenReader":true,"fontSize":"large"}'
+     *                 description: Accessibility settings as JSON string
      *               preferences:
-     *                 type: object
-     *                 properties:
-     *                   language:
-     *                     type: string
-     *                   notifications:
-     *                     type: boolean
+     *                 type: string
+     *                 example: '{"language":"en","notifications":true}'
+     *                 description: User preferences as JSON string
      *     responses:
      *       200:
-     *         description: Profile updated successfully
+     *         description: Profile updated successfully. ProfileImage is returned as a signed S3 URL (valid for 1 hour).
      *         content:
      *           application/json:
      *             schema:
@@ -223,16 +286,29 @@ export class AuthRoutes {
      *                   type: object
      *                   properties:
      *                     user:
-     *                       $ref: '#/components/schemas/User'
+     *                       type: object
+     *                       properties:
+     *                         id:
+     *                           type: string
+     *                         name:
+     *                           type: string
+     *                         email:
+     *                           type: string
+     *                         profileImage:
+     *                           type: string
+     *                           description: S3 signed URL (valid for 1 hour)
+     *                           example: "https://s3.amazonaws.com/bucket/profiles/123.jpg?signature=..."
      *                 message:
      *                   type: string
      *                   example: "Profile updated successfully"
+     *       400:
+     *         description: Invalid file type or size
      *       401:
      *         $ref: '#/components/responses/Unauthorized'
      *       500:
      *         $ref: '#/components/responses/ServerError'
      */
-    this.router.put("/me", verifyAuth, this.authController.updateMe);
+    this.router.put("/me", verifyAuth, uploadProfileImage as any, this.authController.updateMe);
 
     /**
      * @swagger

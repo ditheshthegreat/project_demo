@@ -10,6 +10,7 @@ import { IPostRepository } from '../../domain/repositories/IPostRepository';
 import { IFriendRepository } from '../../domain/repositories/IFriendRepository';
 import { NotFoundException } from '../../../../shared/core/exceptions/AppException';
 import { UserProfileData } from './getUserProfile.usecase';
+import { prisma } from '../../../../shared/infra/prisma/prismaClient';
 
 export class GetMyProfileUseCase {
   constructor(
@@ -19,11 +20,27 @@ export class GetMyProfileUseCase {
   ) {}
 
   async execute(userId: string): Promise<UserProfileData> {
-    // Get user profile
-    const users = await this.userProfileRepository.explore(userId, {});
-    const user = users.find(u => u.firebaseUid === userId);
+    // Get user profile directly (userId is the database user ID)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        firebaseUid: true,
+        name: true,
+        email: true,
+        profileImage: true,
+        gender: true,
+        city: true,
+        federalState: true,
+        interests: true,
+        hobbies: true,
+        accessibilityRequirements: true,
+        description: true,
+        onboardingCompleted: true,
+      },
+    });
 
-    if (!user) {
+    if (!user || !user.onboardingCompleted) {
       throw new NotFoundException('User not found', 'USER_NOT_FOUND');
     }
 

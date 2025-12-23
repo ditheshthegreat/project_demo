@@ -33,6 +33,7 @@ import { RemoveLikeUseCase } from './application/usecases/removeLike.usecase';
 import { AddCommentUseCase } from './application/usecases/addComment.usecase';
 import { GetCommentsUseCase } from './application/usecases/getComments.usecase';
 import { DeleteCommentUseCase } from './application/usecases/deleteComment.usecase';
+import { UpdateCommentUseCase } from './application/usecases/updateComment.usecase';
 import { GetFeedSettingsUseCase } from './application/usecases/getFeedSettings.usecase';
 import { UpdateFeedSettingsUseCase } from './application/usecases/updateFeedSettings.usecase';
 import { ExploreUsersUseCase } from './application/usecases/exploreUsers.usecase';
@@ -44,6 +45,7 @@ import { AcceptFriendRequestUseCase } from './application/usecases/acceptFriendR
 import { RejectFriendRequestUseCase } from './application/usecases/rejectFriendRequest.usecase';
 import { GetFriendsUseCase } from './application/usecases/getFriends.usecase';
 import { RemoveFriendUseCase } from './application/usecases/removeFriend.usecase';
+import { CancelFriendRequestUseCase } from './application/usecases/cancelFriendRequest.usecase';
 import { GetUserProfileUseCase } from './application/usecases/getUserProfile.usecase';
 import { GetMyProfileUseCase } from './application/usecases/getMyProfile.usecase';
 import { StartConversationUseCase } from './application/usecases/startConversation.usecase';
@@ -58,6 +60,7 @@ import { ProfileController } from './interfaces/controllers/profile.controller';
 import { ProfileRoutes } from './interfaces/routes/profile.routes';
 import { MessageController } from './interfaces/controllers/message.controller';
 import { MessageRoutes } from './interfaces/routes/message.routes';
+import { CommentRoutes } from './interfaces/routes/comment.routes';
 import { ConversationRepositoryImpl } from './infrastructure/database/conversationRepository.impl';
 import { verifyAuth } from '../../shared/middleware/verifyAuth.middleware';
 
@@ -90,6 +93,7 @@ export class CommunityModule {
     const addCommentUseCase = new AddCommentUseCase(commentRepository, postRepository);
     const getCommentsUseCase = new GetCommentsUseCase(commentRepository, postRepository);
     const deleteCommentUseCase = new DeleteCommentUseCase(commentRepository, postRepository);
+    const updateCommentUseCase = new UpdateCommentUseCase(commentRepository);
     const getFeedSettingsUseCase = new GetFeedSettingsUseCase(feedSettingsRepository);
     const updateFeedSettingsUseCase = new UpdateFeedSettingsUseCase(feedSettingsRepository);
     const exploreUsersUseCase = new ExploreUsersUseCase(userProfileRepository);
@@ -101,6 +105,7 @@ export class CommunityModule {
     const rejectFriendRequestUseCase = new RejectFriendRequestUseCase(friendRepository);
     const getFriendsUseCase = new GetFriendsUseCase(friendRepository);
     const removeFriendUseCase = new RemoveFriendUseCase(friendRepository);
+    const cancelFriendRequestUseCase = new CancelFriendRequestUseCase(friendRepository);
     const getUserProfileUseCase = new GetUserProfileUseCase(userProfileRepository, postRepository, friendRepository);
     const getMyProfileUseCase = new GetMyProfileUseCase(userProfileRepository, postRepository, friendRepository);
     const startConversationUseCase = new StartConversationUseCase(conversationRepository);
@@ -117,6 +122,7 @@ export class CommunityModule {
       addCommentUseCase,
       getCommentsUseCase,
       deleteCommentUseCase,
+      updateCommentUseCase,
       getFeedSettingsUseCase,
       updateFeedSettingsUseCase
     );
@@ -135,7 +141,8 @@ export class CommunityModule {
       acceptFriendRequestUseCase,
       rejectFriendRequestUseCase,
       getFriendsUseCase,
-      removeFriendUseCase
+      removeFriendUseCase,
+      cancelFriendRequestUseCase
     );
     const friendRoutes = new FriendRoutes(friendController);
 
@@ -150,6 +157,8 @@ export class CommunityModule {
       getConversationsUseCase
     );
     const messageRoutes = new MessageRoutes(messageController);
+
+    const commentRoutes = new CommentRoutes(feedController);
 
     // Create root community router
     this.router = Router();
@@ -171,8 +180,8 @@ export class CommunityModule {
     this.router.use('/message', messageRoutes.getRouter());
     this.router.use('/messages', messageRoutes.getRouter());
     
-    // Add comment delete route at /comment/:commentId
-    this.router.delete('/comment/:commentId', verifyAuth, (req, res) => feedController.deleteComment(req, res));
+    // Mount comment routes at /comment
+    this.router.use('/comment', commentRoutes.getRouter());
   }
 
   /**

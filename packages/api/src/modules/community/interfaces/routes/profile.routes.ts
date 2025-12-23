@@ -96,7 +96,7 @@ export class ProfileRoutes {
     this.router.get(
       '/me',
       verifyAuth,
-      (req, res) => this.profileController.getMyProfile(req, res)
+      (req, res, next) => this.profileController.getMyProfile(req, res, next)
     );
 
     /**
@@ -114,7 +114,8 @@ export class ProfileRoutes {
      *         required: true
      *         schema:
      *           type: string
-     *         description: User's Firebase UID
+     *           format: uuid
+     *         description: User's database ID (UUID)
      *     responses:
      *       200:
      *         description: Profile retrieved successfully
@@ -202,7 +203,7 @@ export class ProfileRoutes {
     this.router.get(
       '/:userId',
       verifyAuth,
-      (req, res) => this.profileController.getUserProfile(req, res)
+      (req, res, next) => this.profileController.getUserProfile(req, res, next)
     );
   }
 
