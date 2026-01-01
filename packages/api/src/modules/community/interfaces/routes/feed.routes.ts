@@ -737,6 +737,110 @@ export class FeedRoutes {
       verifyAuth,
       (req, res, next) => this.feedController.updateFeedSettings(req, res, next)
     );
+
+    /**
+     * @swagger
+     * /api/community/feed/{feedId}/report:
+     *   post:
+     *     summary: Report a feed post
+     *     description: |
+     *       Report a feed post for inappropriate content.
+     *       Reports are stored for admin review and do not immediately hide the post.
+     *       
+     *       **Rules:**
+     *       - Cannot report your own post
+     *       - Cannot report the same post twice
+     *       - Report status is set to PENDING by default
+     *       - Post remains visible until admin review
+     *       
+     *       **Security:**
+     *       - Requires Firebase authentication
+     *       - Soft-deleted users cannot report
+     *     tags: [Community]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: feedId
+     *         required: true
+     *         schema:
+     *           type: string
+     *           format: uuid
+     *         description: ID of feed post to report
+     *         example: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - reason
+     *             properties:
+     *               reason:
+     *                 type: string
+     *                 minLength: 1
+     *                 maxLength: 200
+     *                 description: Short reason for report
+     *                 example: "Inappropriate content"
+     *               description:
+     *                 type: string
+     *                 maxLength: 1000
+     *                 description: Optional detailed description
+     *                 example: "This post contains offensive language and violates community guidelines."
+     *     responses:
+     *       201:
+     *         description: Feed post reported successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     id:
+     *                       type: string
+     *                       format: uuid
+     *                     reporterId:
+     *                       type: string
+     *                       format: uuid
+     *                     feedId:
+     *                       type: string
+     *                       format: uuid
+     *                     reason:
+     *                       type: string
+     *                     description:
+     *                       type: string
+     *                       nullable: true
+     *                     status:
+     *                       type: string
+     *                       enum: [PENDING, REVIEWED, RESOLVED]
+     *                     createdAt:
+     *                       type: string
+     *                       format: date-time
+     *                 message:
+     *                   type: string
+     *                   example: "Feed post reported successfully"
+     *       400:
+     *         description: Validation error
+     *       401:
+     *         description: Unauthorized
+     *       403:
+     *         description: Cannot report your own post
+     *       404:
+     *         description: Feed post not found
+     *       409:
+     *         description: Already reported this post
+     */
+    this.router.post(
+      '/:feedId/report',
+      verifyAuth,
+      (req, res, next) => this.feedController.reportFeed(req, res, next)
+    );
   }
 
   public getRouter(): Router {

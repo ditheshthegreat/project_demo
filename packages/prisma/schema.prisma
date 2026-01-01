@@ -62,9 +62,22 @@ model User {
   friendshipsReceived    Friendship[]    @relation("FriendshipReceiver")
   conversationsCreated   Conversation[]  @relation("ConversationCreator")
   conversationParticipations ConversationParticipant[] @relation("ConversationParticipants")
+  chatMessagesSent       ChatMessage[]   @relation("ChatMessageSender")
+  messageReactions       MessageReaction[] @relation("MessageReactions")
   
   // Push notification tokens
   pushTokens      PushToken[]     // FCM tokens for push notifications
+  
+  // Notifications
+  notificationsReceived Notification[] @relation("NotificationReceiver")
+  notificationsTriggered Notification[] @relation("NotificationActor")
+  
+  // User blocking and reporting
+  blockedUsers    BlockedUser[]   @relation("BlockerUser")
+  blockedByUsers  BlockedUser[]   @relation("BlockedUser")
+  reportsCreated  UserReport[]    @relation("ReporterUser")
+  reportsReceived UserReport[]    @relation("ReportedUser")
+  feedReports     FeedReport[]    @relation("FeedReporter")
   
   isDeleted       Boolean  @default(false) // Soft delete flag
   deletedAt       DateTime? // Deletion timestamp
@@ -104,6 +117,7 @@ model FeedPost {
   images        FeedImage[]   // Post images (max 5)
   comments      FeedComment[] // Comments on this post
   likes         FeedLike[]    // Likes on this post
+  reports       FeedReport[]  // Reports on this post
   
   // Soft delete
   isDeleted     Boolean       @default(false)
@@ -215,19 +229,27 @@ model Friendship {
   @@map("friendships")
 }
 
+enum ConversationType {
+  PRIVATE
+  GROUP
+}
+
 model Conversation {
   id            String                    @id @default(uuid())
-  type          String                    @default("PRIVATE") // PRIVATE (1-to-1) or GROUP (future)
+  type          ConversationType          @default(PRIVATE) // PRIVATE (1-to-1) or GROUP
+  name          String?                   // Group name (required for GROUP, null for PRIVATE)
   lastMessageAt DateTime?                 // Last message timestamp for sorting
   createdById   String                    // User who initiated the conversation
   createdBy     User                      @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: Cascade)
   
   // Many-to-many relation with users through join table
   participants  ConversationParticipant[]
+  messages      ChatMessage[]             // Chat messages in this conversation
   
-  // Soft delete
+  // Soft delete and archive
   isDeleted     Boolean                   @default(false)
   deletedAt     DateTime?
+  isArchived    Boolean                   @default(false) // Archive group conversations
   
   createdAt     DateTime                  @default(now())
   updatedAt     DateTime                  @updatedAt
@@ -238,18 +260,80 @@ model Conversation {
   @@map("conversations")
 }
 
+enum ParticipantRole {
+  ADMIN
+  MEMBER
+}
+
 model ConversationParticipant {
-  id             String       @id @default(uuid())
-  conversationId String       // Conversation this participant belongs to
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  userId         String       // User who is a participant
-  user           User         @relation("ConversationParticipants", fields: [userId], references: [id], onDelete: Cascade)
-  joinedAt       DateTime     @default(now()) // When user joined the conversation
+  id             String          @id @default(uuid())
+  conversationId String          // Conversation this participant belongs to
+  conversation   Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String          // User who is a participant
+  user           User            @relation("ConversationParticipants", fields: [userId], references: [id], onDelete: Cascade)
+  role           ParticipantRole @default(MEMBER) // ADMIN or MEMBER (for groups)
+  joinedAt       DateTime        @default(now()) // When user joined the conversation
   
   @@unique([conversationId, userId]) // One record per user per conversation
   @@index([conversationId])
   @@index([userId])
+  @@index([role])
   @@map("conversation_participants")
+}
+
+// ============================================================================
+// CHAT MESSAGES
+// ============================================================================
+
+enum MessageType {
+  TEXT
+  IMAGE
+  AUDIO
+}
+
+model ChatMessage {
+  id             String      @id @default(uuid())
+  conversationId String      // Conversation this message belongs to
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String      // User who sent the message
+  sender         User        @relation("ChatMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  content        String?     @db.Text // Message content (nullable for media messages)
+  type           MessageType @default(TEXT) // Message type: TEXT, IMAGE, AUDIO
+  
+  // Media support
+  mediaUrl       String?     // URL to media file (S3/MinIO/DO Spaces)
+  mediaType      String?     // MIME type (image/jpeg, audio/mp3, etc.)
+  
+  // Read receipts
+  readAt         DateTime?   // When message was read
+  
+  // Reactions
+  reactions      MessageReaction[]
+  
+  // Soft delete
+  isDeleted      Boolean     @default(false)
+  
+  createdAt      DateTime    @default(now())
+  
+  @@index([conversationId, createdAt]) // For fetching messages in order
+  @@index([senderId])
+  @@index([type])
+  @@map("chat_messages")
+}
+
+model MessageReaction {
+  id        String      @id @default(uuid())
+  messageId String      // Message being reacted to
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String      // User who reacted
+  user      User        @relation("MessageReactions", fields: [userId], references: [id], onDelete: Cascade)
+  emoji     String      // Emoji reaction (e.g., "👍", "❤️", "😂")
+  createdAt DateTime    @default(now())
+  
+  @@unique([messageId, userId]) // One reaction per user per message
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reactions")
 }
 
 // ============================================================================
@@ -280,4 +364,95 @@ model PushToken {
   @@index([isActive])
   @@index([deletedAt])
   @@map("push_tokens")
+}
+
+// ============================================================================
+// USER BLOCKING & REPORTING
+// ============================================================================
+
+model BlockedUser {
+  id        String   @id @default(uuid())
+  blockerId String   // User who blocked
+  blocker   User     @relation("BlockerUser", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String   // User who was blocked
+  blocked   User     @relation("BlockedUser", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([blockerId, blockedId]) // One block per user pair
+  @@index([blockerId])
+  @@index([blockedId])
+  @@map("blocked_users")
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+}
+
+model UserReport {
+  id             String       @id @default(uuid())
+  reporterId     String       // User who reported
+  reporter       User         @relation("ReporterUser", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUserId String       // User being reported
+  reportedUser   User         @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reason         String       // Report reason
+  description    String?      @db.Text // Optional detailed description
+  status         ReportStatus @default(PENDING) // Report status
+  createdAt      DateTime     @default(now())
+  
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([status])
+  @@map("user_reports")
+}
+
+model FeedReport {
+  id          String       @id @default(uuid())
+  reporterId  String       // User who reported
+  reporter    User         @relation("FeedReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  feedId      String       // Feed post being reported
+  feed        FeedPost     @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  reason      String       // Report reason
+  description String?      @db.Text // Optional detailed description
+  status      ReportStatus @default(PENDING) // Report status
+  createdAt   DateTime     @default(now())
+  
+  @@unique([reporterId, feedId]) // One report per user per feed
+  @@index([feedId])
+  @@index([reporterId])
+  @@index([status])
+  @@map("feed_reports")
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FRIEND_REQUEST
+  MESSAGE
+  FEED_REPORT
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           // Notification receiver
+  user      User             @relation("NotificationReceiver", fields: [userId], references: [id], onDelete: Cascade)
+  actorId   String           // User who triggered the notification
+  actor     User             @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  type      NotificationType // Type of notification
+  entityId  String           // ID of related entity (post, comment, message, etc.)
+  title     String           // Notification title
+  body      String           @db.Text // Notification body
+  isRead    Boolean          @default(false) // Read status
+  createdAt DateTime         @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
 }

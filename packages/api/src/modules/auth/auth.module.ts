@@ -35,6 +35,8 @@ import { SendPasswordResetUseCase } from "./application/usecases/sendPasswordRes
 import { SendEmailVerificationUseCase } from "./application/usecases/sendEmailVerification.usecase";
 import { LinkProviderUseCase } from "./application/usecases/linkProvider.usecase";
 import { UnlinkProviderUseCase } from "./application/usecases/unlinkProvider.usecase";
+import { NotificationRepositoryImpl } from '../notifications/infrastructure/database/notification.repository.impl';
+import { CreateNotificationUseCase } from '../notifications/application/usecases/createNotification.usecase';
 import { AuthController } from "./interfaces/controllers/auth.controller";
 import { AuthRoutes } from "./interfaces/routes/auth.routes";
 
@@ -52,11 +54,15 @@ export class AuthModule {
     const userRepository = new UserRepositoryImpl();
     const roleRepository = new RoleRepositoryImpl();
 
+    // Notifications infrastructure
+    const notificationRepository = new NotificationRepositoryImpl();
+    const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository);
+
     // Application layer: All use cases
     const verifyUserUseCase = new VerifyUserUseCase(userRepository);
     const getUserUseCase = new GetUserUseCase(userRepository);
     const updateUserUseCase = new UpdateUserUseCase(userRepository);
-    const deleteUserUseCase = new DeleteUserUseCase(userRepository);
+    const deleteUserUseCase = new DeleteUserUseCase(userRepository, createNotificationUseCase);
     const getRoleUseCase = new GetRoleUseCase(roleRepository);
     const validateTokenUseCase = new ValidateTokenUseCase();
     const sendPasswordResetUseCase = new SendPasswordResetUseCase();

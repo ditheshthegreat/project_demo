@@ -6,6 +6,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../../../shared/infra/prisma/prismaClient';
 import { OnboardingRepositoryImpl } from '../../infrastructure/database/onboarding.repository.impl';
+import { NotificationRepositoryImpl } from '../../../notifications/infrastructure/database/notification.repository.impl';
+import { CreateNotificationUseCase } from '../../../notifications/application/usecases/createNotification.usecase';
 import {
   Step1BasicInfoUseCase,
   Step2LocationUseCase,
@@ -33,6 +35,8 @@ import {
 
 export class OnboardingController {
   private repository = new OnboardingRepositoryImpl(prisma);
+  private notificationRepository = new NotificationRepositoryImpl();
+  private createNotificationUseCase = new CreateNotificationUseCase(this.notificationRepository);
 
   /**
    * POST /onboarding/step1 - Basic Information
@@ -344,7 +348,7 @@ export class OnboardingController {
         return;
       }
 
-      const useCase = new CompleteOnboardingUseCase(this.repository);
+      const useCase = new CompleteOnboardingUseCase(this.repository, this.createNotificationUseCase);
       await useCase.execute({ userId });
 
       res.status(200).json({

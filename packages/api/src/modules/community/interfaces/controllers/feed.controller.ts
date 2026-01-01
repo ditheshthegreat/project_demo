@@ -18,10 +18,12 @@ import { DeleteCommentUseCase } from '../../application/usecases/deleteComment.u
 import { UpdateCommentUseCase } from '../../application/usecases/updateComment.usecase';
 import { GetFeedSettingsUseCase } from '../../application/usecases/getFeedSettings.usecase';
 import { UpdateFeedSettingsUseCase } from '../../application/usecases/updateFeedSettings.usecase';
+import { ReportFeedUseCase } from '../../application/usecases/reportFeed.usecase';
 import { CreatePostDtoSchema } from '../dto/createPost.dto';
 import { CreateCommentDtoSchema } from '../dto/createComment.dto';
 import { UpdateCommentDtoSchema } from '../dto/updateComment.dto';
 import { UpdateFeedSettingsDtoSchema } from '../dto/updateFeedSettings.dto';
+import { ReportFeedDtoSchema } from '../dto/feedReport.dto';
 import { AuthRequest } from '../../../../shared/middleware/verifyAuth.middleware';
 import { s3Service } from '../../../../shared/infra/storage/s3.service';
 import { prisma } from '../../../../shared/infra/prisma/prismaClient';
@@ -39,7 +41,8 @@ export class FeedController {
     private readonly deleteCommentUseCase: DeleteCommentUseCase,
     private readonly updateCommentUseCase: UpdateCommentUseCase,
     private readonly getFeedSettingsUseCase: GetFeedSettingsUseCase,
-    private readonly updateFeedSettingsUseCase: UpdateFeedSettingsUseCase
+    private readonly updateFeedSettingsUseCase: UpdateFeedSettingsUseCase,
+    private readonly reportFeedUseCase: ReportFeedUseCase
   ) {}
 
   /**
@@ -585,6 +588,68 @@ export class FeedController {
         success: true,
         message: 'Feed settings updated successfully',
         data: settings.toJSON(),
+      });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: error.errors,
+        });
+        return;
+      }
+      next(error);
+    }
+  }
+
+  /**
+   * POST /feed/:feedId/report
+   * Report a feed post
+   */
+  async reportFeed(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const firebaseUid = req.user?.uid;
+      if (!firebaseUid) {
+        res.status(401).json({
+          success: false,
+          message: 'Unauthorized',
+        });
+        return;
+      }
+
+      // Get database user ID
+      const userId = await this.getUserIdFromFirebaseUid(firebaseUid);
+      if (!userId) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      const { feedId } = req.params;
+
+      if (!feedId) {
+        res.status(400).json({
+          success: false,
+          message: 'Feed ID is required',
+        });
+        return;
+      }
+
+      const validated = ReportFeedDtoSchema.parse(req.body);
+
+      const report = await this.reportFeedUseCase.execute({
+        reporterId: userId,
+        feedId,
+        reason: validated.reason,
+        description: validated.description,
+      });
+
+      res.status(201).json({
+        success: true,
+        data: report.toJSON(),
+        message: 'Feed post reported successfully',
       });
     } catch (error: any) {
       if (error.name === 'ZodError') {

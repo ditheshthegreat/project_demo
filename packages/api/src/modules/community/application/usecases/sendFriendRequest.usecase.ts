@@ -10,9 +10,14 @@ import { Friend } from '../../domain/entities/friend.entity';
 import { IFriendRepository } from '../../domain/repositories/IFriendRepository';
 import { ConflictException, NotFoundException, BadRequestException } from '../../../../shared/core/exceptions/AppException';
 import { prisma } from '../../../../shared/infra/prisma/prismaClient';
+import { CreateNotificationUseCase } from '../../../notifications/application/usecases/createNotification.usecase';
+import { NotificationType } from '../../../notifications/domain/entities/notification.entity';
 
 export class SendFriendRequestUseCase {
-  constructor(private readonly friendRepository: IFriendRepository) {}
+  constructor(
+    private readonly friendRepository: IFriendRepository,
+    private readonly createNotificationUseCase: CreateNotificationUseCase
+  ) {}
 
   async execute(senderId: string, recipientId: string): Promise<Friend> {
     // Cannot send request to self
@@ -120,6 +125,48 @@ export class SendFriendRequestUseCase {
       status: 'pending',
     });
 
-    return await this.friendRepository.create(friendRequest);
+    const createdRequest = await this.friendRepository.create(friendRequest);
+
+    // Send notification to recipient (after friend request is created)
+    await this.sendFriendRequestNotification(recipientId, senderId);
+
+    return createdRequest;
+  }
+
+  /**
+   * Send notification for friend request
+   * Uses CreateNotificationUseCase - includes self-check and FCM sending
+   */
+  private async sendFriendRequestNotification(
+    recipientId: string,
+    senderId: string
+  ): Promise<void> {
+    try {
+      // Get sender name for notification body
+      const sender = await prisma.user.findUnique({
+        where: { id: senderId },
+        select: { name: true },
+      });
+
+      if (!sender) {
+        return;
+      }
+
+      // CreateNotificationUseCase handles:
+      // - Self-notification prevention (already prevented at use case level)
+      // - Database insertion
+      // - FCM push sending (fire-and-forget)
+      await this.createNotificationUseCase.execute({
+        userId: recipientId,
+        actorId: senderId,
+        type: NotificationType.FRIEND_REQUEST,
+        entityId: senderId,
+        title: 'New friend request',
+        body: `${sender.name} sent you a friend request`,
+      });
+    } catch (error) {
+      // Fail silently - notifications should never break friend request functionality
+      console.error('[SendFriendRequest] Failed to send notification:', error);
+    }
   }
 }

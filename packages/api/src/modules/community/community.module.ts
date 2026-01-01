@@ -24,6 +24,9 @@ import { CommentRepositoryImpl } from './infrastructure/database/commentReposito
 import { FeedSettingsRepositoryImpl } from './infrastructure/database/feedSettingsRepository.impl';
 import { UserProfileRepositoryImpl } from './infrastructure/database/userProfileRepository.impl';
 import { FriendRepositoryImpl } from './infrastructure/database/friendRepository.impl';
+import { BlockedUserRepositoryImpl } from './infrastructure/database/blockedUser.repository.impl';
+import { UserReportRepositoryImpl } from './infrastructure/database/userReport.repository.impl';
+import { FeedReportRepositoryImpl } from './infrastructure/database/feedReport.repository.impl';
 import { CreatePostUseCase } from './application/usecases/createPost.usecase';
 import { GetFeedUseCase } from './application/usecases/getFeed.usecase';
 import { GetPostByIdUseCase } from './application/usecases/getPostById.usecase';
@@ -50,6 +53,13 @@ import { GetUserProfileUseCase } from './application/usecases/getUserProfile.use
 import { GetMyProfileUseCase } from './application/usecases/getMyProfile.usecase';
 import { StartConversationUseCase } from './application/usecases/startConversation.usecase';
 import { GetConversationsUseCase } from './application/usecases/getConversations.usecase';
+import { BlockUserUseCase } from './application/usecases/blockUser.usecase';
+import { UnblockUserUseCase } from './application/usecases/unblockUser.usecase';
+import { ReportUserUseCase } from './application/usecases/reportUser.usecase';
+import { GetBlockedUsersUseCase } from './application/usecases/getBlockedUsers.usecase';
+import { ReportFeedUseCase } from './application/usecases/reportFeed.usecase';
+import { NotificationRepositoryImpl } from '../notifications/infrastructure/database/notification.repository.impl';
+import { CreateNotificationUseCase } from '../notifications/application/usecases/createNotification.usecase';
 import { FeedController } from './interfaces/controllers/feed.controller';
 import { FeedRoutes } from './interfaces/routes/feed.routes';
 import { ExploreController } from './interfaces/controllers/explore.controller';
@@ -60,6 +70,8 @@ import { ProfileController } from './interfaces/controllers/profile.controller';
 import { ProfileRoutes } from './interfaces/routes/profile.routes';
 import { MessageController } from './interfaces/controllers/message.controller';
 import { MessageRoutes } from './interfaces/routes/message.routes';
+import { ModerationController } from './interfaces/controllers/moderation.controller';
+import { ModerationRoutes } from './interfaces/routes/moderation.routes';
 import { CommentRoutes } from './interfaces/routes/comment.routes';
 import { ConversationRepositoryImpl } from './infrastructure/database/conversationRepository.impl';
 import { verifyAuth } from '../../shared/middleware/verifyAuth.middleware';
@@ -82,15 +94,22 @@ export class CommunityModule {
     const userProfileRepository = new UserProfileRepositoryImpl();
     const friendRepository = new FriendRepositoryImpl();
     const conversationRepository = new ConversationRepositoryImpl();
+    const blockedUserRepository = new BlockedUserRepositoryImpl();
+    const userReportRepository = new UserReportRepositoryImpl();
+    const feedReportRepository = new FeedReportRepositoryImpl();
+
+    // Notifications infrastructure
+    const notificationRepository = new NotificationRepositoryImpl();
+    const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository);
 
     // Application layer: Use cases
     const createPostUseCase = new CreatePostUseCase(postRepository);
     const getFeedUseCase = new GetFeedUseCase(postRepository);
     const getPostByIdUseCase = new GetPostByIdUseCase(postRepository);
     const deletePostUseCase = new DeletePostUseCase(postRepository);
-    const addLikeUseCase = new AddLikeUseCase(likeRepository, postRepository);
+    const addLikeUseCase = new AddLikeUseCase(likeRepository, postRepository, createNotificationUseCase);
     const removeLikeUseCase = new RemoveLikeUseCase(likeRepository, postRepository);
-    const addCommentUseCase = new AddCommentUseCase(commentRepository, postRepository);
+    const addCommentUseCase = new AddCommentUseCase(commentRepository, postRepository, createNotificationUseCase);
     const getCommentsUseCase = new GetCommentsUseCase(commentRepository, postRepository);
     const deleteCommentUseCase = new DeleteCommentUseCase(commentRepository, postRepository);
     const updateCommentUseCase = new UpdateCommentUseCase(commentRepository);
@@ -99,9 +118,9 @@ export class CommunityModule {
     const exploreUsersUseCase = new ExploreUsersUseCase(userProfileRepository);
     const searchUsersUseCase = new SearchUsersUseCase(userProfileRepository);
     const nearbyUsersUseCase = new NearbyUsersUseCase(userProfileRepository);
-    const sendFriendRequestUseCase = new SendFriendRequestUseCase(friendRepository);
+    const sendFriendRequestUseCase = new SendFriendRequestUseCase(friendRepository, createNotificationUseCase);
     const getPendingRequestsUseCase = new GetPendingRequestsUseCase(friendRepository);
-    const acceptFriendRequestUseCase = new AcceptFriendRequestUseCase(friendRepository);
+    const acceptFriendRequestUseCase = new AcceptFriendRequestUseCase(friendRepository, createNotificationUseCase);
     const rejectFriendRequestUseCase = new RejectFriendRequestUseCase(friendRepository);
     const getFriendsUseCase = new GetFriendsUseCase(friendRepository);
     const removeFriendUseCase = new RemoveFriendUseCase(friendRepository);
@@ -110,6 +129,11 @@ export class CommunityModule {
     const getMyProfileUseCase = new GetMyProfileUseCase(userProfileRepository, postRepository, friendRepository);
     const startConversationUseCase = new StartConversationUseCase(conversationRepository);
     const getConversationsUseCase = new GetConversationsUseCase(conversationRepository);
+    const blockUserUseCase = new BlockUserUseCase(blockedUserRepository);
+    const unblockUserUseCase = new UnblockUserUseCase(blockedUserRepository);
+    const reportUserUseCase = new ReportUserUseCase(userReportRepository);
+    const getBlockedUsersUseCase = new GetBlockedUsersUseCase(blockedUserRepository);
+    const reportFeedUseCase = new ReportFeedUseCase(feedReportRepository);
 
     // Interface layer: HTTP controller and routes
     const feedController = new FeedController(
@@ -124,7 +148,8 @@ export class CommunityModule {
       deleteCommentUseCase,
       updateCommentUseCase,
       getFeedSettingsUseCase,
-      updateFeedSettingsUseCase
+      updateFeedSettingsUseCase,
+      reportFeedUseCase
     );
     const feedRoutes = new FeedRoutes(feedController);
 
@@ -158,6 +183,14 @@ export class CommunityModule {
     );
     const messageRoutes = new MessageRoutes(messageController);
 
+    const moderationController = new ModerationController(
+      blockUserUseCase,
+      unblockUserUseCase,
+      reportUserUseCase,
+      getBlockedUsersUseCase
+    );
+    const moderationRoutes = new ModerationRoutes(moderationController);
+
     const commentRoutes = new CommentRoutes(feedController);
 
     // Create root community router
@@ -182,6 +215,9 @@ export class CommunityModule {
     
     // Mount comment routes at /comment
     this.router.use('/comment', commentRoutes.getRouter());
+    
+    // Mount moderation routes (block, report) at root /api/community
+    this.router.use('/', moderationRoutes.getRouter());
   }
 
   /**
